@@ -1,0 +1,8 @@
+{
+  "name": "Cinematic Developer Portfolio",
+  "description": "A high-resolution, cinematic hero section for developers, featuring smooth lighting and immersive video backgrounds.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
