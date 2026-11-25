@@ -480,9 +480,9 @@ export default function App() {
       <section
         ref={aboutRef}
         id="about"
-        className="panel relative min-h-[240vh] md:min-h-[300vh] bg-black z-20"
+        className="panel relative min-h-[140vh] md:min-h-[260vh] bg-black z-20"
       >
-        <div className="sticky top-0 h-dvh w-full flex items-center justify-center overflow-hidden">
+        <div className="md:sticky md:top-0 min-h-dvh md:h-dvh w-full flex items-center justify-center overflow-hidden py-16 md:py-0">
 
           {/* Rabbit-hole curtain: splits open over the section's own scroll progress,
               revealing the real About content underneath - no separate pinned section needed */}
@@ -525,31 +525,31 @@ export default function App() {
           </motion.div>
 
           {/* Main Visual: Portrait Reveal with Lens Sweep */}
-          <div className="relative w-full h-full max-w-7xl mx-auto px-8 lg:px-20 grid grid-cols-1 lg:grid-cols-[1.1fr_1.4fr] items-center gap-12 lg:gap-24">
+          <div className="relative w-full h-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-20 grid grid-cols-1 lg:grid-cols-[1.1fr_1.4fr] items-center gap-10 lg:gap-24">
             
             {/* Cinematic Portrait Card */}
             <motion.div 
               style={{
-                y: useTransform(smoothAboutProgress, [0.2, 0.8], [30, -30])
+                y: isMobile ? 0 : useTransform(smoothAboutProgress, [0.2, 0.8], [30, -30])
               }}
-              className="relative flex justify-center items-center perspective-[3000px] z-10 pointer-events-none h-full"
+              className="relative flex justify-center items-center perspective-[3000px] z-10 pointer-events-none w-full"
             >
               <motion.div 
                 style={{ 
-                  scale: useTransform(smoothAboutProgress, [0.1, 0.4, 0.9], [1.2, 1, 1]),
-                  opacity: useTransform(smoothAboutProgress, [0.1, 0.25, 0.95], [0, 1, 1]),
-                  rotateY: useTransform(smoothAboutProgress, [0.15, 0.4, 0.7], [-25, 0, 5]),
-                  rotateX: useTransform(smoothAboutProgress, [0.15, 0.4, 0.7], [15, 0, -3]),
-                  z: useTransform(smoothAboutProgress, [0.1, 0.5], [-600, 30]),
-                  filter: useTransform(smoothAboutProgress, [0.1, 0.4], ["blur(15px) contrast(110%)", "blur(0px) contrast(100%)"]),
-                  clipPath: useTransform(smoothAboutProgress, [0.1, 0.45], ["inset(20% round 32px)", "inset(0% round 32px)"])
+                  scale: isMobile ? 1 : useTransform(smoothAboutProgress, [0.1, 0.4, 0.9], [1.2, 1, 1]),
+                  opacity: isMobile ? 1 : useTransform(smoothAboutProgress, [0.1, 0.25, 0.95], [0, 1, 1]),
+                  rotateY: isMobile ? 0 : useTransform(smoothAboutProgress, [0.15, 0.4, 0.7], [-25, 0, 5]),
+                  rotateX: isMobile ? 0 : useTransform(smoothAboutProgress, [0.15, 0.4, 0.7], [15, 0, -3]),
+                  z: isMobile ? 0 : useTransform(smoothAboutProgress, [0.1, 0.5], [-600, 30]),
+                  filter: isMobile ? "none" : useTransform(smoothAboutProgress, [0.1, 0.4], ["blur(15px) contrast(110%)", "blur(0px) contrast(100%)"]),
+                  clipPath: isMobile ? "none" : useTransform(smoothAboutProgress, [0.1, 0.45], ["inset(20% round 32px)", "inset(0% round 32px)"])
                 }}
                 whileHover={{ 
                   scale: 1.05,
                   z: 150,
                   transition: { duration: 0.6, ease: [0.23, 1, 0.32, 1] }
                 }}
-                className="relative w-full max-w-[400px] md:max-w-[480px] aspect-[4/5] preserve-3d pointer-events-auto group will-change-transform"
+                className="relative w-full max-w-[280px] sm:max-w-[380px] md:max-w-[480px] aspect-[4/5] preserve-3d pointer-events-auto group will-change-transform"
               >
                 {/* Neon HUD Frame */}
                 <motion.div 
@@ -617,16 +617,16 @@ export default function App() {
             {/* Cinematic Text Content */}
             <motion.div 
               style={{
-                y: useTransform(smoothAboutProgress, [0.2, 0.8], [-20, 20])
+                y: isMobile ? 0 : useTransform(smoothAboutProgress, [0.2, 0.8], [-20, 20])
               }}
-              className="relative flex flex-col justify-center pointer-events-auto"
+              className="relative flex flex-col justify-center pointer-events-auto w-full"
             >
               <motion.div 
                 style={{ 
-                  opacity: useTransform(aboutScrollProgress, [0.3, 0.5, 0.95], [0, 1, 1]),
-                  x: useTransform(aboutScrollProgress, [0.3, 0.5, 0.95], [40, 0, 0]), 
+                  opacity: isMobile ? 1 : useTransform(aboutScrollProgress, [0.3, 0.5, 0.95], [0, 1, 1]),
+                  x: isMobile ? 0 : useTransform(aboutScrollProgress, [0.3, 0.5, 0.95], [40, 0, 0]), 
                 }}
-                className="space-y-10 lg:space-y-14"
+                className="space-y-6 sm:space-y-10 lg:space-y-14"
               >
                 <div className="space-y-6">
                   {/* Category Tag */}

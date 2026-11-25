@@ -553,11 +553,11 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
         </div>
 
         {/* Bookshelf tilts in and settles flat as it scrolls into view */}
-        <ContainerScroll containerClassName="h-[42rem] md:h-[52rem]" titleComponent={null} glowColor="#D97706">
-          <div className="relative h-full w-full flex flex-col items-center justify-center overflow-y-auto custom-scrollbar bg-gradient-to-b from-neutral-900/40 to-black/70 rounded-2xl px-4 py-8 md:px-8">
+        <ContainerScroll containerClassName="h-[36rem] sm:h-[42rem] md:h-[52rem]" titleComponent={null} glowColor="#D97706">
+          <div className="relative h-full w-full flex flex-col items-center justify-center overflow-x-auto overflow-y-hidden custom-scrollbar bg-gradient-to-b from-neutral-900/40 to-black/70 rounded-2xl px-2 sm:px-4 py-8 md:px-8">
 
               {/* Stand Row of Vertical Leather Books */}
-              <div className="relative flex justify-center items-end gap-1.5 sm:gap-3.5 min-h-[360px] pb-1 px-2 overflow-visible">
+              <div className="relative flex justify-center items-end gap-1 sm:gap-3.5 min-h-[300px] sm:min-h-[360px] pb-1 px-2 overflow-visible min-w-max md:min-w-0">
                 {BOOKS_DATA.map((book, i) => {
                   const isSelected = selectedBookId === book.id;
 
@@ -621,7 +621,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                           transition: { duration: 0.25, ease: "easeOut" }
                         }}
                         className={cn(
-                          "relative rounded-t-lg border-t border-x flex flex-col justify-between py-6 px-1 sm:px-2.5 max-w-[9.2vw] sm:max-w-none transition-[border-color,box-shadow] duration-300",
+                          "relative rounded-t-lg border-t border-x flex flex-col justify-between py-4 sm:py-6 px-1 sm:px-2.5 max-w-[10.5vw] sm:max-w-none transition-[border-color,box-shadow] duration-300",
                           book.heightClass,
                           book.widthClass,
                           "bg-gradient-to-b",
@@ -876,10 +876,10 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                           exit="exit"
                           transition={{ duration: 0.65, ease: [0.45, 0, 0.15, 1] }}
                           style={{ transformOrigin: 'left center', transformStyle: 'preserve-3d' }}
-                          className="flex"
+                          className="flex flex-col sm:flex-row"
                         >
                       {/* Left Page Page (ivory warm gradient, center fold shade) */}
-                      <div className="flex-1 bg-gradient-to-r from-[#ECE6D9] via-[#F6F2E8] to-[#E6DEC0] min-h-[460px] md:min-h-[480px] rounded-l-2xl p-4 md:p-7 shadow-[inset_15px_0_30px_rgba(0,0,0,0.05)] relative overflow-hidden">
+                      <div className="w-full sm:flex-1 bg-gradient-to-r from-[#ECE6D9] via-[#F6F2E8] to-[#E6DEC0] min-h-[360px] sm:min-h-[460px] md:min-h-[480px] rounded-t-2xl sm:rounded-t-none sm:rounded-l-2xl p-4 md:p-7 shadow-[inset_15px_0_30px_rgba(0,0,0,0.05)] relative overflow-hidden">
                         {/* Paper fiber grain */}
                         <div
                           className="absolute inset-0 rounded-l-2xl pointer-events-none opacity-[0.05] mix-blend-multiply"
@@ -927,10 +927,10 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                       </div>
 
                       {/* PHYSICAL SPINE SEAM BINDER SHADOW GUTTER */}
-                      <div className="w-1.5 md:w-3.5 bg-gradient-to-r from-[#1C0F07] via-[#0E0703] to-[#1C0F07] relative z-10 flex-shrink-0 shadow-[0_0_15px_black]" />
+                      <div className="h-1.5 sm:h-auto w-full sm:w-1.5 md:w-3.5 bg-gradient-to-r from-[#1C0F07] via-[#0E0703] to-[#1C0F07] relative z-10 flex-shrink-0 shadow-[0_0_15px_black]" />
 
                       {/* Right Page Page (shading mirrors the left page) */}
-                      <div className="flex-1 bg-gradient-to-r from-[#E6DEC0] via-[#F6F2E8] to-[#ECE6D9] min-h-[460px] md:min-h-[480px] rounded-r-2xl p-4 md:p-7 shadow-[inset_-15px_0_30px_rgba(0,0,0,0.05)] relative overflow-hidden">
+                      <div className="w-full sm:flex-1 bg-gradient-to-r from-[#E6DEC0] via-[#F6F2E8] to-[#ECE6D9] min-h-[360px] sm:min-h-[460px] md:min-h-[480px] rounded-b-2xl sm:rounded-b-none sm:rounded-r-2xl p-4 md:p-7 shadow-[inset_-15px_0_30px_rgba(0,0,0,0.05)] relative overflow-hidden">
                         {/* Paper fiber grain */}
                         <div
                           className="absolute inset-0 rounded-r-2xl pointer-events-none opacity-[0.05] mix-blend-multiply"

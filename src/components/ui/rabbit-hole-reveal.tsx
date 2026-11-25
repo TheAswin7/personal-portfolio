@@ -34,6 +34,19 @@ export const RabbitHoleReveal: React.FC<RabbitHoleRevealProps> = ({
   const bottomY = useTransform(progress, range, ['0%', '140%']);
   const opacity = useTransform(progress, [range[1], Math.min(1, range[1] + 0.04)], [1, 0]);
 
+  // Check mobile screen size to immediately open/fade curtain on touch screens
+  const [isMobileScreen, setIsMobileScreen] = React.useState(false);
+  React.useEffect(() => {
+    const check = () => setIsMobileScreen(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  if (isMobileScreen) {
+    return null;
+  }
+
   return (
     <motion.div
       aria-hidden="true"
