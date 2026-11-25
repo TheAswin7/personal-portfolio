@@ -179,7 +179,7 @@ export default function App() {
     const email = String(data.get("email") ?? "").trim();
     const message = String(data.get("message") ?? "").trim();
 
-    const accessKey = ((import.meta as any).env?.VITE_WEB3FORMS_ACCESS_KEY as string) || "YOUR_ACCESS_KEY_HERE";
+    const accessKey = ((import.meta as any).env?.VITE_WEB3FORMS_ACCESS_KEY as string) || "37cd0892-a992-403e-970a-3dd0013919db";
 
     try {
       const response = await fetch("https://api.web3forms.com/submit", {
