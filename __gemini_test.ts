@@ -12,7 +12,7 @@ async function main() {
   // Same shape the fixed /api/chat sends: history sanitized to start with a user turn
   const contents = [
     { role: "user", parts: [{ text: "Who is Aswin?" }] },
-    { role: "model", parts: [{ text: "Aswin R. is a vision engineer." }] },
+    { role: "model", parts: [{ text: "Aswin R. is an AI engineer." }] },
     { role: "user", parts: [{ text: "Reply with exactly: PING OK" }] },
   ];
   const response = await ai.models.generateContent({

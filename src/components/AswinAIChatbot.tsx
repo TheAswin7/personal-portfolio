@@ -66,25 +66,25 @@ const SUGGESTIONS = [
   { label: "How can I contact him?", text: "What is the best way to contact Aswin and connect with him?" }
 ];
 
-function RobotHead({ size = 32 }: { size?: number }) {
-  return (
-    <div 
-      className="relative flex items-center justify-center rounded-xl bg-gradient-to-b from-orange-400 to-orange-600 border border-orange-300/30 shadow-[0_0_15px_rgba(249,115,22,0.35)] overflow-visible"
+function RobotHead({ size = 32, wave = false }: { size?: number; wave?: boolean }) {
+  const head = (
+    <div
+      className="relative flex items-center justify-center rounded-xl bg-gradient-to-b from-zinc-600 to-zinc-900 border border-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.45)] overflow-visible"
       style={{ width: size, height: size * 0.9 }}
     >
       {/* Side antenna/ears bolts */}
       <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-[40%] bg-neutral-700 rounded-l" />
       <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-[40%] bg-neutral-700 rounded-r" />
-      
+
       {/* Small top antenna */}
       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0.5 h-1 bg-neutral-600">
-        <span className="absolute -top-1 -left-0.5 w-1.5 h-1.5 rounded-full bg-orange-300 animate-pulse" />
+        <span className="absolute -top-1 -left-0.5 w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse" />
       </div>
 
       {/* Screen area (Dark Face) */}
-      <div className="w-[82%] h-[72%] rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center gap-1 px-1">
+      <div className="w-[82%] h-[72%] rounded-lg bg-black border border-white/10 flex items-center justify-center gap-1 px-1">
         {/* Eye 1 */}
-        <motion.div 
+        <motion.div
           animate={{
             scaleY: [1, 1, 0.1, 1, 1],
           }}
@@ -97,7 +97,7 @@ function RobotHead({ size = 32 }: { size?: number }) {
           className="w-[28%] h-[55%] rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.95)] origin-center"
         />
         {/* Eye 2 */}
-        <motion.div 
+        <motion.div
           animate={{
             scaleY: [1, 1, 0.1, 1, 1],
           }}
@@ -112,6 +112,21 @@ function RobotHead({ size = 32 }: { size?: number }) {
       </div>
     </div>
   );
+
+  if (!wave) return head;
+
+  // Seldom, friendly greeting "wave" - the head rocks side to side a few times, then
+  // rests for several seconds before doing it again.
+  return (
+    <motion.div
+      animate={{ rotate: [0, -14, 11, -9, 6, 0] }}
+      transition={{ duration: 1.1, repeat: Infinity, repeatDelay: 6.5, ease: 'easeInOut' }}
+      style={{ transformOrigin: 'bottom center' }}
+      className="inline-flex"
+    >
+      {head}
+    </motion.div>
+  );
 }
 
 export default function AswinAIChatbot() {
@@ -120,7 +135,7 @@ export default function AswinAIChatbot() {
     {
       id: "welcome",
       sender: "bot",
-      text: "Greetings, voyager. I am Aswin AI, a digital proxy designed to decode Aswin R.'s vision engineering capabilities and research. How may I assist your query today?",
+      text: "Greetings, voyager. I am Raven, a digital proxy designed to decode Aswin R.'s AI engineering capabilities and research. How may I assist your query today?",
       timestamp: new Date()
     }
   ]);
@@ -170,7 +185,7 @@ export default function AswinAIChatbot() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to contact Aswin AI terminal.");
+        throw new Error("Failed to contact Raven terminal.");
       }
 
       const data = await response.json();
@@ -202,6 +217,10 @@ export default function AswinAIChatbot() {
       {/* Floating Action Button */}
       <motion.button
         id="chatbot-fab"
+        type="button"
+        aria-label={isOpen ? "Close chat" : "Open chat"}
+        aria-expanded={isOpen}
+        aria-controls="chatbot-panel"
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
@@ -227,7 +246,7 @@ export default function AswinAIChatbot() {
               transition={{ duration: 0.2 }}
               className="relative flex items-center justify-center"
             >
-              <RobotHead size={28} />
+              <RobotHead size={28} wave />
               <span className="absolute -top-1.5 -right-1.5 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
@@ -242,20 +261,25 @@ export default function AswinAIChatbot() {
         {isOpen && (
           <motion.div
             id="chatbot-panel"
+            role="dialog"
+            aria-label="Chat with Raven"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setIsOpen(false);
+            }}
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             data-lenis-prevent
-            className="fixed bottom-24 right-6 z-[120] w-[92%] sm:w-[420px] h-[580px] bg-neutral-950/70 border border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_20px_rgba(249,115,22,0.1)] backdrop-blur-xl"
+            className="fixed bottom-24 left-3 right-3 z-[120] flex h-[580px] max-h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/70 shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_20px_rgba(249,115,22,0.1)] backdrop-blur-xl sm:left-auto sm:right-6 sm:w-[420px]"
           >
             {/* Header */}
             <div className="px-5 py-4 bg-white/5 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <RobotHead size={28} />
+                <RobotHead size={28} wave />
                 <div>
                   <h4 className="text-sm font-black uppercase tracking-[0.2em] text-white flex items-center gap-1.5">
-                    Aswin AI <Sparkles size={12} className="text-orange-500 animate-pulse" />
+                    Raven <Sparkles size={12} className="text-orange-500 animate-pulse" />
                   </h4>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="relative flex h-2 w-2">
@@ -267,8 +291,10 @@ export default function AswinAIChatbot() {
                 </div>
               </div>
               <button
+                type="button"
+                aria-label="Close chat"
                 onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-all"
+                className="p-1 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500"
               >
                 <X size={18} />
               </button>
@@ -278,8 +304,10 @@ export default function AswinAIChatbot() {
                 scrolling inside the chat instead of moving the page behind it */}
             <div
               ref={messagesContainerRef}
+              role="log"
+              aria-live="polite"
               data-lenis-prevent
-              className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4 relative custom-scrollbar bg-scanline"
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 space-y-4 relative custom-scrollbar bg-scanline"
             >
               <div className="absolute inset-0 bg-scanline pointer-events-none opacity-[0.02]" />
 
@@ -303,8 +331,8 @@ export default function AswinAIChatbot() {
                     >
                       {msg.sender === "bot" ? <BotMessageContent text={msg.text} /> : msg.text}
                       <span
-                        className={`block text-[8px] mt-1.5 text-right ${
-                          msg.sender === "user" ? "text-black/50" : "text-white/30"
+                        className={`block text-[10px] mt-1.5 text-right ${
+                          msg.sender === "user" ? "text-black/60" : "text-white/50"
                         }`}
                       >
                         {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -334,13 +362,14 @@ export default function AswinAIChatbot() {
             {/* Suggestion Prompts */}
             {messages.length === 1 && !isLoading && (
               <div className="px-5 py-3 bg-white/[0.02] border-t border-white/5 space-y-2">
-                <p className="text-[9px] font-mono uppercase tracking-widest text-orange-500/60 font-bold mb-1.5">Suggested Queries</p>
+                <p className="text-[10px] font-mono uppercase tracking-widest text-orange-500/80 font-bold mb-1.5">Suggested Queries</p>
                 <div className="grid grid-cols-2 gap-2">
                   {SUGGESTIONS.map((sug, i) => (
                     <button
                       key={i}
+                      type="button"
                       onClick={() => handleSend(sug.text)}
-                      className="text-left p-2 bg-white/5 hover:bg-orange-500/10 border border-white/10 hover:border-orange-500/40 rounded-lg text-[10px] font-mono tracking-wide text-white/70 hover:text-orange-500 transition-all duration-300"
+                      className="text-left p-2 bg-white/5 hover:bg-orange-500/10 border border-white/10 hover:border-orange-500/40 rounded-lg text-[11px] font-mono tracking-wide text-white/70 hover:text-orange-500 transition-[background-color,border-color,color] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500"
                     >
                       {sug.label}
                     </button>
@@ -360,16 +389,18 @@ export default function AswinAIChatbot() {
               >
                 <input
                   type="text"
+                  aria-label="Message Raven"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Query Aswin AI..."
+                  placeholder="Query Raven..."
                   disabled={isLoading}
-                  className="w-full bg-white/5 border border-white/10 focus:border-orange-500/50 rounded-xl py-3 pl-4 pr-12 text-xs focus:outline-none outline-none text-white/90 placeholder-white/30 font-mono"
+                  className="w-full bg-white/5 border border-white/10 focus:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/30 rounded-xl py-3 pl-4 pr-12 text-xs outline-none text-white/90 placeholder-white/40 font-mono transition-[border-color,box-shadow] duration-300"
                 />
                 <button
                   type="submit"
+                  aria-label="Send message"
                   disabled={!inputValue.trim() || isLoading}
-                  className="absolute right-2.5 p-2 bg-orange-500 hover:bg-orange-400 disabled:bg-white/10 text-black disabled:text-white/20 rounded-lg transition-all focus:outline-none"
+                  className="absolute right-2.5 p-2 bg-orange-500 hover:bg-orange-400 disabled:bg-white/10 text-black disabled:text-white/30 rounded-lg transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   <Send size={14} />
                 </button>

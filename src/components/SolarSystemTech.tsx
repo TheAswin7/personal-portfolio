@@ -482,7 +482,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
         if (!atBottom) return;
         e.preventDefault();
         cooldown = true;
-        window.setTimeout(releaseCooldown, 900);
+        window.setTimeout(releaseCooldown, 400);
 
         const currentIndex = BOOKS_DATA.findIndex(b => b.id === selectedBookId);
         if (currentIndex === BOOKS_DATA.length - 1) {
@@ -500,7 +500,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
         if (currentIndex === 0) return;
         e.preventDefault();
         cooldown = true;
-        window.setTimeout(releaseCooldown, 900);
+        window.setTimeout(releaseCooldown, 400);
         handlePrevBook();
       }
     };
@@ -513,7 +513,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
     <section 
       ref={ref}
       id="tech" 
-      className="panel relative w-full min-h-screen bg-[#060607] z-30 py-20 flex flex-col justify-center overflow-hidden border-t border-white/5"
+      className="panel relative w-full min-h-dvh bg-[#060607] z-30 py-20 flex flex-col justify-center overflow-hidden border-t border-white/5"
     >
       {/* Background Ambience / Subtle Wood Grain Texture & warm lamps */}
       <div className="absolute inset-0 bg-scanline pointer-events-none opacity-[0.03] z-10" />
@@ -553,7 +553,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
         </div>
 
         {/* Bookshelf tilts in and settles flat as it scrolls into view */}
-        <ContainerScroll containerClassName="h-[50rem] md:h-[62rem]" titleComponent={null} glowColor="#D97706">
+        <ContainerScroll containerClassName="h-[42rem] md:h-[52rem]" titleComponent={null} glowColor="#D97706">
           <div className="relative h-full w-full flex flex-col items-center justify-center overflow-y-auto custom-scrollbar bg-gradient-to-b from-neutral-900/40 to-black/70 rounded-2xl px-4 py-8 md:px-8">
 
               {/* Stand Row of Vertical Leather Books */}
@@ -562,13 +562,25 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                   const isSelected = selectedBookId === book.id;
 
                   return (
-                    <motion.div
-                      key={book.id}
-                      onClick={() => goToBook(book.id)}
-                      animate={{ rotate: [-1.5, 1.5, -1.5] }}
-                      transition={{ duration: 5 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
-                      className="relative cursor-pointer flex flex-col items-center group select-none origin-bottom overflow-visible"
-                    >
+                      <motion.div
+                        key={book.id}
+                        onClick={() => goToBook(book.id)}
+                        initial={{ opacity: 0, x: i < 4 ? "-6vw" : "6vw", y: -20, rotate: i < 4 ? -15 : 15 }}
+                        whileInView={{ 
+                          opacity: 1, 
+                          x: 0, 
+                          y: 0, 
+                          rotate: [-1.5, 1.5, -1.5] 
+                        }}
+                        viewport={{ once: true, margin: "-100px 0px" }}
+                        transition={{ 
+                          opacity: { duration: 0.8, delay: i < 4 ? i * 0.15 : (7 - i) * 0.15 },
+                          x: { type: "spring", stiffness: 100, damping: 15, delay: i < 4 ? i * 0.15 : (7 - i) * 0.15 },
+                          y: { type: "spring", stiffness: 100, damping: 15, delay: i < 4 ? i * 0.15 : (7 - i) * 0.15 },
+                          rotate: { duration: 5 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: 1.5 } 
+                        }}
+                        className="relative cursor-pointer flex flex-col items-center group select-none origin-bottom overflow-visible"
+                      >
                       {/* Discovery cue - a bouncing arrow over the first book, until any book is opened */}
                       {i === 0 && !hasOpenedBook && (
                         <motion.div
@@ -576,7 +588,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                           transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
                           className="absolute -top-14 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 pointer-events-none"
                         >
-                          <span className="text-[8px] font-mono uppercase tracking-widest text-amber-400 whitespace-nowrap bg-black/70 px-2 py-0.5 rounded-full border border-amber-500/30">
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 whitespace-nowrap bg-black/70 px-2 py-0.5 rounded-full border border-amber-500/30">
                             Tap a book
                           </span>
                           <ChevronDown size={16} className="text-amber-400" />
@@ -609,7 +621,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                           transition: { duration: 0.25, ease: "easeOut" }
                         }}
                         className={cn(
-                          "relative rounded-t-lg border-t border-x flex flex-col justify-between py-6 px-2.5 transition-all duration-300",
+                          "relative rounded-t-lg border-t border-x flex flex-col justify-between py-6 px-1 sm:px-2.5 max-w-[9.2vw] sm:max-w-none transition-[border-color,box-shadow] duration-300",
                           book.heightClass,
                           book.widthClass,
                           "bg-gradient-to-b",
@@ -642,18 +654,24 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                           </span>
                         </div>
 
-                        {/* Spine Vertical Text */}
+                        {/* Spine Vertical Text - bright, high-contrast, glows in the selected/hovered state */}
                         <div className="flex-1 flex items-center justify-center py-4 overflow-hidden">
-                          <span 
-                            className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.25em] font-mono text-white/70 group-hover:text-white select-none whitespace-nowrap"
-                            style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)' }}
+                          <span
+                            className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.25em] font-mono text-white select-none whitespace-nowrap transition-[text-shadow] duration-300"
+                            style={{
+                              writingMode: 'vertical-lr',
+                              transform: 'rotate(180deg)',
+                              textShadow: isSelected
+                                ? `0 0 12px ${book.accentColor}, 0 0 4px rgba(255,255,255,0.8)`
+                                : '0 1px 3px rgba(0,0,0,0.9), 0 0 1px rgba(255,255,255,0.4)',
+                            }}
                           >
                             {book.spineTitle}
                           </span>
                         </div>
 
                         {/* Engraved glow Icon on the spine */}
-                        <div className="my-2 text-center opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all">
+                        <div className="my-2 text-center opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-[opacity,transform] duration-300">
                           {getBookSpineIcon(book.icon, isSelected ? book.accentColor : '#D97706')}
                         </div>
 
@@ -689,7 +707,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
         </ContainerScroll>
 
         {/* Instruction Footer under the shelf */}
-        <div className="mt-5 text-center flex flex-col items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.25em] text-white/30">
+        <div className="mt-5 text-center flex flex-col items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.25em] text-white/50">
           <div className="flex items-center gap-2">
             <div className="p-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-500">
               <BookOpen size={10} />
@@ -719,7 +737,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                 exit={{ rotateY: -25, x: -30, opacity: 0, scale: 0.96 }}
                 transition={{ type: "spring", damping: 22, stiffness: 160 }}
                 style={{ transformPerspective: 2200, transformOrigin: 'left center' }}
-                className="relative max-w-6xl w-full bg-[#0E0E0F]/95 border border-white/10 rounded-3xl overflow-hidden flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.95)] z-20 h-[92vh] md:h-[680px]"
+                className="relative max-w-6xl w-full bg-[#0E0E0F]/95 border border-white/10 rounded-3xl overflow-hidden flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.95)] z-20 h-[92dvh] md:h-[680px]"
               >
                 
                 {/* Floating Top Close Button in Circle */}
@@ -733,8 +751,12 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                 {/* Reader Layout Split */}
                 <div className="flex-1 flex flex-col lg:flex-row overflow-hidden h-full">
                   
-                  {/* LEFT SIDEBAR CONTROLS (Vertical representation of the 8 books) */}
-                  <div className="hidden sm:flex lg:flex-col h-14 lg:h-full w-full lg:w-16 bg-black/40 border-b lg:border-b-0 lg:border-r border-white/5 items-center justify-center gap-2 px-4 lg:py-8 z-20 flex-shrink-0">
+                  {/* LEFT SIDEBAR CONTROLS (Vertical representation of the 8 books) - first beat of the reveal */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.25, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    className="hidden sm:flex lg:flex-col h-14 lg:h-full w-full lg:w-16 bg-black/40 border-b lg:border-b-0 lg:border-r border-white/5 items-center justify-center gap-2 px-4 lg:py-8 z-20 flex-shrink-0">
                     {BOOKS_DATA.map((book) => {
                       const isCurrent = book.id === selectedBookId;
                       return (
@@ -757,10 +779,14 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                         </button>
                       );
                     })}
-                  </div>
+                  </motion.div>
 
-                  {/* CENTRAL INTRO COLUMN */}
-                  <div className="w-full lg:w-[35%] p-6 md:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/5 bg-gradient-to-b from-neutral-900/40 to-black/60 overflow-y-auto overscroll-contain custom-scrollbar flex-shrink-0">
+                  {/* CENTRAL INTRO COLUMN - second beat, the profile slides in after the sidebar */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.35, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="w-full lg:w-[35%] p-6 md:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/5 bg-gradient-to-b from-neutral-900/40 to-black/60 overflow-y-auto overscroll-contain custom-scrollbar flex-shrink-0">
                     
                     <div className="space-y-6">
                       {/* Section tag */}
@@ -783,17 +809,17 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                         <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-2xl flex flex-col items-center justify-center text-center">
                           <Star size={14} className="text-amber-500 mb-1.5" />
                           <span className="text-sm font-black text-white">{activeBook.stats.technologies}</span>
-                          <span className="text-[8px] font-mono uppercase tracking-wider text-white/30 mt-0.5">Techs</span>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-white/50 mt-0.5">Techs</span>
                         </div>
                         <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-2xl flex flex-col items-center justify-center text-center">
                           <Clock size={14} className="text-amber-500 mb-1.5" />
                           <span className="text-xs font-black text-white">{activeBook.stats.experience}</span>
-                          <span className="text-[8px] font-mono uppercase tracking-wider text-white/30 mt-0.5">Exp</span>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-white/50 mt-0.5">Exp</span>
                         </div>
                         <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-2xl flex flex-col items-center justify-center text-center">
                           <Code2 size={14} className="text-amber-500 mb-1.5" />
                           <span className="text-xs font-black text-white">{activeBook.stats.projects}</span>
-                          <span className="text-[8px] font-mono uppercase tracking-wider text-white/30 mt-0.5">Built</span>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-white/50 mt-0.5">Built</span>
                         </div>
                       </div>
 
@@ -821,10 +847,14 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                       </button>
                     </div>
 
-                  </div>
+                  </motion.div>
 
-                  {/* RIGHT SIDE - THE PHYSICAL OLD PAPER BOOK ARCHITECTURE */}
-                  <div className="flex-1 relative bg-black/20">
+                  {/* RIGHT SIDE - THE PHYSICAL OLD PAPER BOOK ARCHITECTURE - final beat, the book itself */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.45, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex-1 relative bg-black/20">
                   <div
                     ref={pagesScrollRef}
                     onScroll={checkPagesScroll}
@@ -861,8 +891,8 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
 
                         {/* Top Header Label spanning across pages */}
                         <div className="flex items-center justify-between border-b border-black/15 pb-2.5 mb-5">
-                          <span className="text-[8px] font-mono tracking-widest text-black/40 font-bold uppercase">TECHNOLOGIES I KNOW</span>
-                          <span className="text-[8px] font-mono text-black/30">PAGE I</span>
+                          <span className="text-[10px] font-mono tracking-widest text-black/60 font-bold uppercase">TECHNOLOGIES I KNOW</span>
+                          <span className="text-[10px] font-mono text-black/50">PAGE I</span>
                         </div>
 
                         {/* List of 4 cards inside Left Page */}
@@ -912,8 +942,8 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
 
                         {/* Top Header Label */}
                         <div className="flex items-center justify-between border-b border-black/15 pb-2.5 mb-5">
-                          <span className="text-[8px] font-mono tracking-widest text-black/40 font-bold uppercase">TECHNOLOGIES I KNOW</span>
-                          <span className="text-[8px] font-mono text-black/30">PAGE II</span>
+                          <span className="text-[10px] font-mono tracking-widest text-black/60 font-bold uppercase">TECHNOLOGIES I KNOW</span>
+                          <span className="text-[10px] font-mono text-black/50">PAGE II</span>
                         </div>
 
                         {/* List of 4 cards inside Right Page */}
@@ -947,7 +977,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                           {/* Filler element if less than 8 items */}
                           {activeBook.technologies.length <= 4 && (
                             <div className="h-full flex items-center justify-center border-2 border-dashed border-black/10 rounded-xl p-6 text-center">
-                              <span className="text-[10px] font-mono uppercase tracking-widest text-black/30 block">End of Ledger Index</span>
+                              <span className="text-[10px] font-mono uppercase tracking-widest text-black/50 block">End of Ledger Index</span>
                             </div>
                           )}
                         </div>
@@ -974,7 +1004,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                             <motion.div animate={{ y: [0, 4, 0] }} transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}>
                               <ChevronDown size={13} className="text-amber-500" />
                             </motion.div>
-                            <span className="text-[8px] font-mono uppercase tracking-widest text-white/50">Scroll</span>
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-white/70">Scroll</span>
                           </div>
                         ) : (
                           <button
@@ -987,7 +1017,7 @@ const SolarSystemTech = forwardRef<HTMLDivElement, any>((props, ref) => {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
 
                 </div>
 

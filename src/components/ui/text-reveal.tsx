@@ -26,7 +26,7 @@ const TextRevealByWord: FC<TextRevealByWordProps> = ({
     <div ref={targetRef} className={cn("relative z-0 min-h-[150vh]", className)}>
       <div
         className={
-          "sticky top-0 mx-auto flex h-screen max-w-4xl items-center bg-transparent px-[1rem]"
+          "sticky top-0 mx-auto flex h-dvh max-w-4xl items-center bg-transparent px-[1rem]"
         }
       >
         <p

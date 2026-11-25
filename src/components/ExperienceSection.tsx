@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   motion,
+  AnimatePresence,
   useScroll,
   useTransform,
   useSpring,
@@ -12,68 +13,124 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import ScrollReveal from "./ScrollReveal";
 import { IrisReveal } from "./ui/iris-reveal";
 import { 
-  Presentation, 
-  Palette, 
-  GraduationCap, 
+  Code2, 
   Cpu, 
-  Zap, 
-  Terminal 
+  Trophy, 
+  GraduationCap, 
+  Presentation, 
+  ShieldCheck,
+  CheckCircle2,
+  MapPin,
+  Sparkles,
+  Award,
+  ExternalLink,
+  X,
+  Palette
 } from "lucide-react";
 
-const experiences = [
+interface ExperienceItemData {
+  year: string;
+  date: string;
+  role: string;
+  company: string;
+  location?: string;
+  category: string;
+  metric?: string;
+  image: string;
+  imagePosition?: string;
+  certificate?: string;
+  certificateTitle?: string;
+  desc: string;
+  highlight?: string;
+  tags: string[];
+  icon: any;
+}
+
+const experiences: ExperienceItemData[] = [
   { 
-    year: "2024", 
-    date: "MAY 2024",
-    role: "Research Presenter", 
-    company: "ICRTAC 2024", 
-    desc: "Presented ML/DL cancer diagnosis research at an international conference.", 
-    tags: ["ML", "DL", "RESEARCH"],
-    icon: Presentation
+    year: "2026", 
+    date: "AUG – OCT 2026",
+    role: "Software Developer", 
+    company: "Haio Creations (Startup)", 
+    category: "Production Engineering",
+    metric: "Production UI & APIs",
+    image: "/software_developer.jpg",
+    desc: "Engineered responsive web applications and modular UI components in React & Tailwind CSS.", 
+    highlight: "Delivered production client pages & integrated frontend with backend REST APIs.",
+    tags: ["REACT", "TAILWIND CSS", "REST APIS", "AGILE"],
+    icon: Code2
+  },
+  { 
+    year: "2026", 
+    date: "JUN – JUL 2026",
+    role: "Software Engineering Intern", 
+    company: "CapeStart – The Foundry", 
+    location: "Nagercoil, Tamil Nadu",
+    category: "AI & Data Science Track",
+    metric: "85% Score · 5+ Endpoints",
+    image: "/capestart_internship.jpg",
+    desc: "Built secure multi-tenant RESTful APIs for a student attendance platform using Django REST Framework & MySQL.", 
+    highlight: "Engineered 5+ endpoints with JWT auth & RBAC; optimized Django ORM queries.",
+    tags: ["DJANGO REST", "MYSQL", "JWT & RBAC", "POSTMAN"],
+    icon: Cpu
+  },
+  { 
+    year: "2026", 
+    date: "2026",
+    role: "Opportunity Pulse — Team Lead", 
+    company: "CapeXtreme 2026 National Hackathon", 
+    category: "Product Innovation",
+    metric: "Top 4 National · Best Presenter",
+    image: "/opportunity_pulse_award.jpg",
+    imagePosition: "center 15%",
+    desc: "Architected a unified opportunity aggregator platform uniting internships, hackathons, and symposiums.", 
+    highlight: "Led Team FabFour to Top 4 finish and won Best Presenter Award across 50+ teams.",
+    tags: ["FASTAPI", "REACT", "MYSQL", "TOP 4 FINISH"],
+    icon: Trophy
   },
   { 
     year: "2024", 
-    date: "JAN 2024",
-    role: "Graphic Designer", 
-    company: "UCEN E-Magazine", 
-    desc: "Produced 20+ layouts managing full visual identity of the publication.", 
-    tags: ["DESIGN", "LAYOUT", "CREATIVITY"],
+    date: "MAY 2024",
+    role: "Research Author & Presenter", 
+    company: "ICRTAC 2024 International Conference", 
+    category: "Deep Learning Research",
+    metric: "International Conference",
+    image: "/icrtac_2024_certificate.jpg",
+    certificate: "/icrtac_2024_certificate.jpg",
+    certificateTitle: "ICRTAC 2024 — Research Paper Presentation Certificate",
+    desc: "Presented peer-reviewed research on CNN architectures for early cancer diagnosis from medical imagery.", 
+    highlight: "Demonstrated high-precision feature extraction and algorithmic diagnostic reliability.",
+    tags: ["DEEP LEARNING", "CNN", "RESEARCH", "ICRTAC"],
+    icon: Presentation
+  },
+  { 
+    year: "2025", 
+    date: "2025",
+    role: "2nd Place — Poster Design", 
+    company: "CREZENTA’25 — Dept. of CSE", 
+    location: "UCE Nagercoil",
+    category: "Technical Symposium",
+    metric: "2nd Place 🥈 · CREZENTA’25",
+    image: "/crezenta_25_award.jpg",
+    imagePosition: "center 28%",
+    desc: "Secured 2nd Place in the Poster Design Competition at CREZENTA’25, blending technical precision with storytelling and creative visual communication.", 
+    highlight: "Intra-College Technical Symposium organized by the Department of Computer Science & Engineering, University College of Engineering, Nagercoil.",
+    tags: ["POSTER DESIGN", "CREZENTA'25", "2ND PLACE 🥈", "VISUAL DESIGN"],
     icon: Palette
   },
   { 
     year: "2023–27", 
-    date: "2023–2027",
-    role: "B.E. Computer Science", 
-    company: "University Col. of Eng.", 
-    desc: "CGPA 8.12/10 · building real-time CV systems and gesture-driven apps.", 
-    tags: ["DSA", "CV", "PYTHON"],
+    date: "2023 – 2027",
+    role: "B.E. Computer Science & Engineering", 
+    company: "University College of Engineering", 
+    location: "Anna University Constituent",
+    category: "Engineering Academics",
+    metric: "CGPA 8.11 / 10",
+    image: "/uce_nagercoil.jpg",
+    desc: "Computer Science engineering student building solid foundations across algorithms, databases, and AI systems.", 
+    highlight: "Maintained 8.11 / 10 CGPA while spearheading full-stack and AI software solutions.",
+    tags: ["DATA STRUCTURES", "SYSTEMS", "DBMS", "OOP"],
     icon: GraduationCap
-  },
-  { 
-    year: "2024", 
-    date: "MID 2024",
-    role: "AI/CV Developer", 
-    company: "Personal Projects", 
-    desc: "Engineered gesture-driven applications running at 30+ FPS using OpenCV.", 
-    tags: ["OPENCV", "MEDIAPIPE", "PYTHON"],
-    icon: Cpu
-  },
-  { 
-    year: "2024", 
-    date: "OCT 2024",
-    role: "Hackathon Builder", 
-    company: "TwinPe — P2P Payments", 
-    desc: "Built offline peer-to-peer payment system in a hackathon sprint.", 
-    tags: ["FLUTTER", "P2P", "OFFLINE"],
-    icon: Zap
-  },
-  { 
-    year: "2024", 
-    date: "DEC 2024",
-    role: "CTF Participant", 
-    company: "Yukthi CTF 2.0", 
-    desc: "Solved cryptography and vulnerability challenges in capture-the-flag.", 
-    tags: ["CRYPTO", "VULN", "SECURITY"],
-    icon: Terminal
   }
 ];
 
@@ -121,13 +178,276 @@ const ScrambledRef = ({ value, active, isHovered }: { value: string, active: boo
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// REUSABLE CARD CONTENT
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface CardContentProps {
+  exp: ExperienceItemData;
+  index: number;
+  isLeft: boolean;
+  active: boolean;
+  isHovered: boolean;
+  setIsHovered: (v: boolean) => void;
+  titleY: any;
+  refY: any;
+  isRevealed: boolean;
+  shouldReduceMotion: boolean | null;
+  onOpenCertificate?: (src: string, title: string) => void;
+}
+
+const ExperienceCard: React.FC<CardContentProps> = ({
+  exp,
+  index,
+  isLeft,
+  active,
+  isHovered,
+  setIsHovered,
+  titleY,
+  refY,
+  isRevealed,
+  shouldReduceMotion,
+  onOpenCertificate,
+}) => {
+  const IconComponent = exp.icon;
+
+  return (
+    <div 
+      className="max-w-[560px] w-full relative text-left"
+      style={{ perspective: "1000px" }}
+    >
+      {/* Radiant backlight aura on card reveal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={active ? { opacity: [0, 0.45, 0.15], scale: [0.85, 1.08, 1] } : {}}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+        className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-orange-500/25 via-amber-500/15 to-orange-500/25 blur-xl pointer-events-none z-0"
+      />
+
+      <motion.div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        initial={{
+          x: shouldReduceMotion ? 0 : (isLeft ? -50 : 50),
+          y: 40,
+          rotateY: shouldReduceMotion ? 0 : (isLeft ? -8 : 8),
+          rotateX: 4,
+          opacity: 0,
+          filter: "blur(8px)",
+          scale: 0.92
+        }}
+        animate={
+          active 
+            ? { 
+                x: 0, 
+                y: 0, 
+                rotateY: 0,
+                rotateX: 0,
+                opacity: 1, 
+                filter: "blur(0px)", 
+                scale: 1 
+              } 
+            : {}
+        }
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        className={cn(
+          "relative p-5 sm:p-6 rounded-2xl border border-white/10 overflow-hidden group text-left will-change-transform",
+          // Only transition border/shadow via CSS; opacity/transform/filter are driven by framer-motion
+          "transition-[border-color,box-shadow] duration-500 bg-[#0c0c0e]/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.6)]",
+          isHovered && "border-orange-500/40 shadow-[0_25px_60px_rgba(249,115,22,0.18)]"
+        )}
+        style={{ 
+          background: "linear-gradient(135deg, rgba(249,115,22,0.05) 0%, transparent 60%, rgba(255,255,255,0.01) 100%), rgba(12,12,14,0.95)"
+        }}
+      >
+        {/* Holographic Laser Scanline Reveal: sweeps across card when unlocked */}
+        <motion.div
+          initial={{ top: "-5%", opacity: 0 }}
+          animate={active ? { top: ["0%", "105%"], opacity: [0, 1, 1, 0] } : {}}
+          transition={{ duration: 1.1, delay: 0.15, ease: "easeInOut" }}
+          className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-orange-400 to-transparent shadow-[0_0_15px_#f97316] z-30 pointer-events-none"
+        />
+
+        {/* Glowing Corner Accents */}
+        {isLeft ? (
+          <div className="absolute top-0 left-0 w-16 h-16 border-t border-l border-orange-500/80 rounded-tl-2xl pointer-events-none shadow-[-3px_-3px_15px_rgba(249,115,22,0.4)]" />
+        ) : (
+          <div className="absolute bottom-0 right-0 w-16 h-16 border-b border-r border-orange-500/80 rounded-br-2xl pointer-events-none shadow-[3px_3px_15px_rgba(249,115,22,0.4)]" />
+        )}
+
+        {/* Large faint chapter numeral */}
+        <span
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute -top-3 select-none font-sans text-6xl md:text-7xl font-bold tabular-nums text-white/[0.03] transition-colors duration-500 group-hover:text-orange-500/[0.08]",
+            isLeft ? "right-5" : "left-5"
+          )}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+
+        {/* Scan Sweep Effect on hover */}
+        {isHovered && (
+          <motion.div 
+            initial={{ top: "0%", opacity: 1 }}
+            animate={{ top: "100%", opacity: 0 }}
+            transition={{ duration: 0.7, ease: "easeInOut" }}
+            className="absolute inset-x-0 h-[2px] bg-orange-500/25 z-20 pointer-events-none"
+          />
+        )}
+
+        {/* Clean Thematic Image Banner with zoom reveal */}
+        <div 
+          onClick={() => {
+            if (exp.certificate) {
+              onOpenCertificate?.(exp.certificate, exp.certificateTitle || exp.role);
+            }
+          }}
+          className={cn(
+            "relative overflow-hidden rounded-xl mb-4 h-48 sm:h-52 w-full border border-white/10 group-hover:border-orange-500/30 transition-colors bg-black/40",
+            exp.certificate && "cursor-pointer group/cert"
+          )}
+        >
+          <motion.div
+            initial={{ scale: 1.15, filter: "brightness(0.65)" }}
+            animate={active ? { scale: 1, filter: "brightness(1)" } : {}}
+            transition={{ duration: 1.1, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full h-full"
+          >
+            <img 
+              src={exp.image} 
+              alt={exp.role} 
+              loading="lazy"
+              style={{ objectPosition: exp.imagePosition || "center" }}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            />
+          </motion.div>
+          {exp.certificate && (
+            <div className="absolute inset-0 bg-black/45 opacity-0 group-hover/cert:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+              <span className="px-3 py-1.5 rounded-full bg-orange-500 text-black font-mono text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(249,115,22,0.6)]">
+                <Award size={12} />
+                Click to expand certificate
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Role & Organization - Staggered reveal */}
+        <motion.div 
+          initial={{ opacity: 0, y: 12 }}
+          animate={active ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
+          className="space-y-1 mb-2.5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <motion.h3 
+              style={{ y: titleY }}
+              className="text-xl sm:text-2xl font-sans font-bold tracking-tight text-white group-hover:text-orange-400 transition-colors duration-300 leading-snug"
+            >
+              {exp.role}
+            </motion.h3>
+            <span className="md:hidden text-[10px] font-mono uppercase tracking-wider text-orange-400/80 font-bold whitespace-nowrap">
+              {exp.date}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs font-sans font-medium text-orange-500">
+            <span className="uppercase tracking-widest font-semibold">{exp.company}</span>
+            {exp.location && (
+              <span className="text-white/40 flex items-center gap-1 font-normal text-[11px]">
+                <MapPin size={11} className="text-orange-500/70" />
+                {exp.location}
+              </span>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Minimized Concise Description */}
+        <motion.p 
+          initial={{ opacity: 0, y: 10 }}
+          animate={active ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
+          className="text-[13px] sm:text-[13.5px] font-sans font-normal text-gray-300 leading-relaxed mb-3"
+        >
+          {exp.desc}
+        </motion.p>
+
+        {/* Worthy Key Highlight */}
+        {exp.highlight && (
+          <motion.div 
+            initial={{ opacity: 0, y: 8 }}
+            animate={active ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.32, ease: "easeOut" }}
+            className="flex items-start gap-2 text-[12px] text-gray-300/90 leading-relaxed font-sans mb-3 pt-2.5 border-t border-white/5"
+          >
+            <span className="text-orange-500 text-[9px] mt-1 flex-shrink-0">◆</span>
+            <span className="text-white/80 font-medium">{exp.highlight}</span>
+          </motion.div>
+        )}
+
+        {/* View Certificate Action Option */}
+        {exp.certificate && (
+          <div className="mb-3.5 pt-2 border-t border-white/5 flex items-center">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenCertificate?.(exp.certificate!, exp.certificateTitle || exp.role);
+              }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500 border border-orange-500/30 hover:border-orange-500 text-orange-400 hover:text-black font-mono text-[10px] uppercase tracking-wider font-bold transition-all duration-300 shadow-[0_0_12px_rgba(249,115,22,0.15)] group/btn cursor-pointer"
+            >
+              <Award size={13} className="text-orange-400 group-hover/btn:text-black transition-colors" />
+              <span>View Certificate</span>
+              <ExternalLink size={11} className="text-orange-400/70 group-hover/btn:text-black transition-colors" />
+            </button>
+          </div>
+        )}
+
+        {/* Footer: Tech Stack Tags & Icon Component */}
+        <motion.div 
+          initial={{ opacity: 0, y: 8 }}
+          animate={active ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+          className="flex items-center justify-between gap-3 pt-2.5 border-t border-white/5"
+        >
+          <div className="flex flex-wrap gap-1.5 flex-1">
+            {exp.tags.map((tag: string) => (
+              <span 
+                key={tag}
+                className="px-2 py-0.5 bg-white/[0.03] border border-white/10 rounded text-[9px] font-mono uppercase tracking-[0.1em] text-orange-400/90 group-hover:border-orange-500/30 transition-all cursor-default"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <div className="w-9 h-9 rounded-lg border border-orange-500/25 bg-orange-500/[0.04] flex items-center justify-center flex-shrink-0 shadow-[inset_0_0_10px_rgba(249,115,22,0.15)] group-hover:border-orange-500/50 group-hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all duration-300">
+            <IconComponent className="text-orange-500 w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+          </div>
+        </motion.div>
+
+      </motion.div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TIMELINE ITEM
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TimelineItem = ({ exp, index, scrollYProgress }: { exp: any, index: number, scrollYProgress: any }) => {
+const TimelineItem = ({ 
+  exp, 
+  index, 
+  scrollYProgress,
+  onOpenCertificate
+}: { 
+  exp: ExperienceItemData, 
+  index: number, 
+  scrollYProgress: any,
+  onOpenCertificate?: (src: string, title: string) => void
+}) => {
   const isLeft = index % 2 === 0;
   const itemRef = useRef(null);
-  const isInView = useInView(itemRef, { once: true, amount: 0.15 });
+  const isInView = useInView(itemRef, { once: true, amount: 0.1, margin: "0px 0px -8% 0px" });
   const [active, setActive] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -159,10 +479,8 @@ const TimelineItem = ({ exp, index, scrollYProgress }: { exp: any, index: number
   const refY = useTransform(itemScroll, [0, 1], shouldReduceMotion ? ["0px", "0px"] : ["8px", "-8px"]);
   const bloomOpacity = useTransform(itemScroll, [0.3, 0.5, 0.7], [0, 0.6, 0]);
 
-  const IconComponent = exp.icon;
-
   return (
-    <div ref={itemRef} className="grid grid-cols-1 md:grid-cols-[1fr_80px_1fr] min-h-0 md:min-h-[40vh] items-center relative gap-8 md:gap-0">
+    <div ref={itemRef} className="grid grid-cols-1 md:grid-cols-[1fr_80px_1fr] min-h-0 md:min-h-[40vh] items-center relative gap-6 md:gap-0">
       {/* Background Ambient Bloom */}
       <motion.div 
         style={{ 
@@ -178,123 +496,53 @@ const TimelineItem = ({ exp, index, scrollYProgress }: { exp: any, index: number
       />
 
       {/* LEFT COLUMN */}
-      <div className={cn("flex flex-col md:h-full justify-center w-full", isLeft ? "items-start text-left md:items-end md:text-right pr-0 md:pr-12 z-20" : "hidden md:block opacity-0 pointer-events-none")}>
+      <div className={cn("flex flex-col md:h-full justify-center w-full", isLeft ? "items-start text-left md:items-end md:text-left pr-0 md:pr-12 z-20" : "hidden md:block opacity-0 pointer-events-none")}>
         {isLeft && (
-          <div className="max-w-[640px] w-full relative">
-            <motion.div
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-              initial={{ x: shouldReduceMotion ? 0 : -24, y: 16, opacity: 0, filter: "blur(10px)", scale: 0.98 }}
-              animate={active ? { x: 0, y: 0, opacity: 1, filter: "blur(0px)", scale: 1 } : {}}
-              transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-              className={cn(
-                "relative p-8 md:p-10 rounded-2xl border border-white/10 overflow-hidden group min-h-[240px]",
-                "transition-all duration-500 bg-[#0c0c0e]/80 backdrop-blur-xl",
-                isHovered && "bg-gradient-to-br from-orange-500/[0.03] to-transparent border-white/15"
-              )}
-              style={{ 
-                background: "linear-gradient(135deg, rgba(249,115,22,0.03) 0%, transparent 60%, rgba(255,255,255,0.01) 100%), rgba(12,12,14,0.8)"
-              }}
-            >
-              {/* Glowing Top-Left Corner Border */}
-              <div className="absolute top-0 left-0 w-20 h-20 border-t border-l border-orange-500 rounded-tl-2xl pointer-events-none shadow-[-3px_-3px_15px_rgba(249,115,22,0.4)]" />
-
-              {/* Large faint chapter numeral - editorial rhythm marker, scales to any card count */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute -top-4 right-6 select-none font-sans text-7xl md:text-8xl font-bold tabular-nums text-white/[0.04] transition-colors duration-500 group-hover:text-orange-500/[0.07]"
-              >
-                {String(index + 1).padStart(2, "0")}
-              </span>
-
-              {/* Scan Sweep Effect */}
-              {isHovered && (
-                <motion.div 
-                  initial={{ top: "0%", opacity: 1 }}
-                  animate={{ top: "100%", opacity: 0 }}
-                  transition={{ duration: 0.7, ease: "easeInOut" }}
-                  className="absolute inset-x-0 h-[3px] bg-orange-500/10 z-10 pointer-events-none"
-                />
-              )}
-
-              {/* Top Row: Ref Log */}
-              <motion.div 
-                style={{ y: refY }}
-                className="flex justify-start md:justify-end mb-6 font-mono text-[10px] tracking-[0.2em] text-orange-500/50 group-hover:text-orange-500 transition-colors overflow-hidden"
-              >
-                <motion.div
-                  initial={{ y: "100%" }}
-                  animate={active ? { y: "0%" } : {}}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-                >
-                  <ScrambledRef value={`REF_L_00${index + 1}`} active={isRevealed} isHovered={isHovered} />
-                </motion.div>
-              </motion.div>
-
-              {/* Flex Content Layout: Text & Circle Icon */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                <div className="space-y-4 flex-1">
-                  <motion.h3 
-                    style={{ y: titleY }}
-                    className="text-2xl md:text-[1.75rem] font-sans font-semibold tracking-tight text-white group-hover:text-orange-400 transition-colors duration-300"
-                  >
-                    {exp.role}
-                  </motion.h3>
-
-                  <div className="flex items-center gap-3">
-                    <p className="text-xs font-sans font-medium text-orange-500 uppercase tracking-widest">{exp.company}</p>
-                  </div>
-
-                  <ScrollReveal
-                    preset="word-by-word"
-                    className="text-[15px] md:text-base font-sans font-normal text-gray-400 leading-[1.75] max-w-[440px]"
-                  >
-                    {exp.desc}
-                  </ScrollReveal>
-
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {exp.tags.map((tag: string) => (
-                      <span 
-                        key={tag}
-                        className="px-3 py-1 bg-orange-500/5 border border-orange-500/15 rounded-md text-[9px] font-mono uppercase tracking-[0.1em] text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all cursor-default"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Circular Icon Container */}
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-orange-500/20 bg-orange-500/[0.02] flex items-center justify-center relative shadow-[inset_0_0_15px_rgba(249,115,22,0.15)] group-hover:border-orange-500/40 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-500 shrink-0 self-center sm:self-auto">
-                  <IconComponent className="text-orange-500 w-8 h-8 group-hover:scale-110 transition-transform duration-500" />
-                </div>
-              </div>
-            </motion.div>
-          </div>
+          <ExperienceCard
+            exp={exp}
+            index={index}
+            isLeft={true}
+            active={active}
+            isHovered={isHovered}
+            setIsHovered={setIsHovered}
+            titleY={titleY}
+            refY={refY}
+            isRevealed={isRevealed}
+            shouldReduceMotion={shouldReduceMotion}
+            onOpenCertificate={onOpenCertificate}
+          />
         )}
       </div>
 
       {/* CENTER COLUMN (Spine) */}
-      <div className="relative h-full flex items-center justify-center min-h-[60px] md:min-h-0">
-        {/* Node with Double Circle styling */}
+      <div className="relative h-full flex items-center justify-center min-h-[40px] md:min-h-0">
+        {/* Node with Double Circle styling & Active Pulse Ring */}
         <div className="relative z-20">
+          {active && (
+            <motion.span
+              initial={{ scale: 1, opacity: 0.85 }}
+              animate={{ scale: [1, 2.3], opacity: [0.85, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 0.8 }}
+              className="absolute inset-0 rounded-full border border-orange-500 pointer-events-none"
+            />
+          )}
           <motion.div 
             animate={{
-              scale: isHovered ? 1.15 : 1,
+              scale: isHovered ? 1.25 : 1,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className={cn(
-              "w-6 h-6 rounded-full border-2 border-orange-500/40 bg-black flex items-center justify-center transition-all duration-300",
-              active && "border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)]"
+              "w-6 h-6 rounded-full border-2 border-orange-500/40 bg-black flex items-center justify-center transition-[border-color,box-shadow] duration-300",
+              active && "border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.6)]"
             )}
           >
-            <div className={cn("w-2.5 h-2.5 rounded-full transition-all duration-300", active ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]" : "bg-gray-800")} />
+            <div className={cn("w-2.5 h-2.5 rounded-full transition-all duration-300", active ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.9)]" : "bg-gray-800")} />
           </motion.div>
         </div>
 
-        {/* Date / Month Label & Pointer */}
+        {/* Date / Month Label & Pointer (Desktop) */}
         <div className={cn(
-          "absolute top-1/2 -translate-y-1/2 whitespace-nowrap font-mono text-xs tracking-wider uppercase text-orange-500 flex items-center gap-1.5 z-20",
+          "hidden md:flex absolute top-1/2 -translate-y-1/2 whitespace-nowrap font-mono text-xs tracking-wider uppercase text-orange-500 items-center gap-1.5 z-20",
           isLeft 
             ? "left-1/2 ml-5 justify-start" 
             : "right-1/2 mr-5 justify-end"
@@ -302,11 +550,11 @@ const TimelineItem = ({ exp, index, scrollYProgress }: { exp: any, index: number
           {isLeft ? (
             <>
               <span className="text-orange-500/70 text-[10px]">◀</span>
-              <span>{exp.date || exp.year}</span>
+              <span className="font-bold">{exp.date}</span>
             </>
           ) : (
             <>
-              <span>{exp.date || exp.year}</span>
+              <span className="font-bold">{exp.date}</span>
               <span className="text-orange-500/70 text-[10px]">▶</span>
             </>
           )}
@@ -316,10 +564,10 @@ const TimelineItem = ({ exp, index, scrollYProgress }: { exp: any, index: number
         <motion.div
           initial={{ scaleX: 0 }}
           animate={active ? { scaleX: 1 } : {}}
-          transition={{ duration: 0.4, ease: "easeOut" }}
+          transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
           style={{ originX: isLeft ? 1 : 0 }}
           className={cn(
-            "hidden md:block absolute top-1/2 -translate-y-1/2 h-[1px] w-12 bg-orange-500/40 z-10",
+            "hidden md:block absolute top-1/2 -translate-y-1/2 h-[1px] w-12 bg-gradient-to-r from-orange-500/80 to-orange-500/40 shadow-[0_0_8px_rgba(249,115,22,0.5)] z-10",
             isLeft ? "right-1/2 mr-3" : "left-1/2 ml-3"
           )}
         />
@@ -328,97 +576,19 @@ const TimelineItem = ({ exp, index, scrollYProgress }: { exp: any, index: number
       {/* RIGHT COLUMN */}
       <div className={cn("flex flex-col md:h-full justify-center w-full", !isLeft ? "items-start text-left pl-0 md:pl-12 z-20" : "hidden md:block opacity-0 pointer-events-none")}>
         {!isLeft && (
-          <div className="max-w-[640px] w-full relative">
-            <motion.div
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-              initial={{ x: shouldReduceMotion ? 0 : 24, y: 16, opacity: 0, filter: "blur(10px)", scale: 0.98 }}
-              animate={active ? { x: 0, y: 0, opacity: 1, filter: "blur(0px)", scale: 1 } : {}}
-              transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-              className={cn(
-                "relative p-8 md:p-10 rounded-2xl border border-white/10 overflow-hidden group min-h-[240px]",
-                "transition-all duration-500 bg-[#0c0c0e]/80 backdrop-blur-xl",
-                isHovered && "bg-gradient-to-br from-orange-500/[0.03] to-transparent border-white/15"
-              )}
-              style={{ 
-                background: "linear-gradient(135deg, rgba(249,115,22,0.03) 0%, transparent 60%, rgba(255,255,255,0.01) 100%), rgba(12,12,14,0.8)"
-              }}
-            >
-              {/* Glowing Bottom-Right Corner Border */}
-              <div className="absolute bottom-0 right-0 w-20 h-20 border-b border-r border-orange-500 rounded-br-2xl pointer-events-none shadow-[3px_3px_15px_rgba(249,115,22,0.4)]" />
-
-              {/* Large faint chapter numeral - editorial rhythm marker, scales to any card count */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute -top-4 left-6 select-none font-sans text-7xl md:text-8xl font-bold tabular-nums text-white/[0.04] transition-colors duration-500 group-hover:text-orange-500/[0.07]"
-              >
-                {String(index + 1).padStart(2, "0")}
-              </span>
-
-              {/* Scan Sweep Effect */}
-              {isHovered && (
-                <motion.div 
-                  initial={{ top: "0%", opacity: 1 }}
-                  animate={{ top: "100%", opacity: 0 }}
-                  transition={{ duration: 0.7, ease: "easeInOut" }}
-                  className="absolute inset-x-0 h-[3px] bg-orange-500/10 z-10 pointer-events-none"
-                />
-              )}
-
-              {/* Top Row: Ref Log */}
-              <motion.div 
-                style={{ y: refY }}
-                className="flex justify-start mb-6 font-mono text-[10px] tracking-[0.2em] text-orange-500/50 group-hover:text-orange-500 transition-colors overflow-hidden"
-              >
-                <motion.div
-                  initial={{ y: "100%" }}
-                  animate={active ? { y: "0%" } : {}}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-                >
-                  <ScrambledRef value={`REF_L_00${index + 1}`} active={isRevealed} isHovered={isHovered} />
-                </motion.div>
-              </motion.div>
-
-              {/* Flex Content Layout: Text & Circle Icon */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                <div className="space-y-4 flex-1">
-                  <motion.h3 
-                    style={{ y: titleY }}
-                    className="text-2xl md:text-[1.75rem] font-sans font-semibold tracking-tight text-white group-hover:text-orange-400 transition-colors duration-300"
-                  >
-                    {exp.role}
-                  </motion.h3>
-
-                  <div className="flex items-center gap-3">
-                    <p className="text-xs font-sans font-medium text-orange-500 uppercase tracking-widest">{exp.company}</p>
-                  </div>
-
-                  <ScrollReveal
-                    preset="word-by-word"
-                    className="text-[15px] md:text-base font-sans font-normal text-gray-400 leading-[1.75] max-w-[440px]"
-                  >
-                    {exp.desc}
-                  </ScrollReveal>
-
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {exp.tags.map((tag: string) => (
-                      <span 
-                        key={tag}
-                        className="px-3 py-1 bg-orange-500/5 border border-orange-500/15 rounded-md text-[9px] font-mono uppercase tracking-[0.1em] text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all cursor-default"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Circular Icon Container */}
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-orange-500/20 bg-orange-500/[0.02] flex items-center justify-center relative shadow-[inset_0_0_15px_rgba(249,115,22,0.15)] group-hover:border-orange-500/40 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-500 shrink-0 self-center sm:self-auto">
-                  <IconComponent className="text-orange-500 w-8 h-8 group-hover:scale-110 transition-transform duration-500" />
-                </div>
-              </div>
-            </motion.div>
-          </div>
+          <ExperienceCard
+            exp={exp}
+            index={index}
+            isLeft={false}
+            active={active}
+            isHovered={isHovered}
+            setIsHovered={setIsHovered}
+            titleY={titleY}
+            refY={refY}
+            isRevealed={isRevealed}
+            shouldReduceMotion={shouldReduceMotion}
+            onOpenCertificate={onOpenCertificate}
+          />
         )}
       </div>
     </div>
@@ -433,15 +603,27 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
   const sectionRef = useRef<HTMLElement>(null);
   React.useImperativeHandle(ref, () => sectionRef.current!);
   const shouldReduceMotion = useReducedMotion();
+  const [activeCertificate, setActiveCertificate] = useState<{ src: string; title: string } | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveCertificate(null);
+    };
+    if (activeCertificate) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [activeCertificate]);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"]
   });
 
-  // Scoped to the timeline rows themselves (not the section as a whole, which also
-  // includes the iris intro above) so the spine growth and chapter counter track the
-  // actual cards being scrolled through, regardless of how long the intro is.
   const timelineRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: timelineProgress } = useScroll({
     target: timelineRef,
@@ -451,13 +633,9 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
   const lineHeight = useSpring(timelineProgress, { stiffness: 100, damping: 30 });
   const spineY = useTransform(timelineProgress, [0, 1], ["0px", "-40px"]);
 
-  // The flame at the spine's tip grows as it nears the end of the timeline, foreshadowing
-  // the fire-spread handoff into the Projects section right after.
-  const flameScale = useTransform(timelineProgress, [0.8, 1], [1, 1.9]);
-  const flameGlowOpacity = useTransform(timelineProgress, [0.8, 1], [0.7, 1]);
+  const flameScale = useTransform(timelineProgress, [0.8, 1], [1, 1.3]);
+  const flameGlowOpacity = useTransform(timelineProgress, [0.8, 1], [0.8, 1]);
 
-  // Same pinned-intro formula as the About curtain, but with a shorter 180vh wrapper so
-  // less scroll is needed to clear the reveal and reach the timeline rows below.
   const introRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: introProgress } = useScroll({
     target: introRef,
@@ -473,7 +651,7 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
         className="flex items-center justify-center gap-4 mb-4"
       >
         <span className="font-mono text-xs uppercase tracking-[0.4em] text-orange-500 font-bold">
-          MY JOURNEY
+          CAREER &amp; MILESTONES
         </span>
       </motion.div>
 
@@ -488,7 +666,7 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-about font-extrabold uppercase tracking-tight text-white leading-none">
             THE PATH{" "}
             <span className="normal-case font-serif italic font-medium text-gradient-orange text-glow-orange">
-              I've Walked
+              I've Built
             </span>
           </h2>
         </ScrollReveal>
@@ -504,7 +682,7 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
         preset="word-by-word"
         className="justify-center text-gray-400 font-sans font-light tracking-wide text-sm md:text-base max-w-2xl mx-auto"
       >
-        A timeline of my milestones, learnings and experiences.
+        A proven progression of startup engineering, multi-tenant API systems, international research, and national awards.
       </ScrollReveal>
     </div>
   );
@@ -513,16 +691,13 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
     <section
       ref={sectionRef}
       id="experience"
-      className="panel relative bg-[#060607]"
+      className="panel relative bg-[#060607] overflow-x-clip"
     >
-      {/* Iris reveal - pinned like the About curtain: a pinprick of light widens into a
-          tunnel while the header locks in place, "JOURNEY" dissolving to reveal the real
-          "THE PATH I'VE WALKED" header underneath before releasing into the timeline */}
       {shouldReduceMotion ? (
         <div className="pt-28 md:pt-44">{headerContent}</div>
       ) : (
         <div ref={introRef} className="relative h-[180vh] w-full">
-          <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
+          <div className="sticky top-0 flex h-dvh w-full items-center justify-center overflow-hidden">
             {headerContent}
             <IrisReveal
               progress={introProgress}
@@ -536,7 +711,7 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
         </div>
       )}
 
-      <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-28 md:pt-24 md:pb-44">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-10 md:pt-24 md:pb-14">
 
         {/* Timeline Container */}
         <div ref={timelineRef} className="relative">
@@ -550,8 +725,7 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
             style={{ scaleY: lineHeight, y: spineY }}
             className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[2px] bg-orange-500 origin-top z-10 shadow-[0_0_15px_rgba(249,115,22,0.6)]"
           >
-            {/* Progress marker - a flickering flame that intensifies as it nears the end,
-                foreshadowing the fire-spread handoff into Projects right after */}
+            {/* Progress marker */}
             <motion.div
               style={{ scale: flameScale }}
               className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full flex flex-col items-center"
@@ -586,18 +760,89 @@ const ExperienceSection = React.forwardRef<HTMLElement>((_, ref) => {
           </motion.div>
 
           {/* Experience Rows */}
-          <div className="relative z-20 space-y-16 md:space-y-32">
+          <div className="relative z-20 space-y-12 sm:space-y-16 md:space-y-32">
             {experiences.map((exp, index) => (
               <TimelineItem 
                 key={index} 
                 exp={exp} 
                 index={index} 
                 scrollYProgress={scrollYProgress}
+                onOpenCertificate={(src, title) => setActiveCertificate({ src, title })}
               />
             ))}
           </div>
         </div>
       </div>
+
+      {/* Smooth transition into Projects Section */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-12 bg-orange-500/15 blur-[60px] pointer-events-none z-10" />
+
+      {/* Certificate Lightbox Modal */}
+      <AnimatePresence>
+        {activeCertificate && (
+          <div 
+            className="fixed inset-0 z-[250] flex items-center justify-center p-3 sm:p-6 md:p-10"
+            data-lenis-prevent
+          >
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveCertificate(null)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+
+            {/* Modal Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-4xl max-h-[92dvh] flex flex-col bg-[#0d0d0f] border border-orange-500/35 rounded-2xl shadow-[0_25px_70px_rgba(249,115,22,0.2)] overflow-hidden z-10"
+            >
+              {/* Top Bar */}
+              <div className="flex items-center justify-between px-5 py-3.5 bg-black/80 border-b border-white/10 flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316]" />
+                  <span className="font-mono text-xs uppercase tracking-widest text-white/90 font-bold truncate max-w-[240px] sm:max-w-md">
+                    {activeCertificate.title}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <a
+                    href={activeCertificate.src}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500 border border-orange-500/30 hover:border-orange-500 text-orange-400 hover:text-black font-mono text-[11px] uppercase tracking-wider font-bold transition-all duration-300"
+                  >
+                    <ExternalLink size={12} />
+                    Open Full
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCertificate(null)}
+                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-orange-500 hover:text-black border border-white/10 flex items-center justify-center text-white/70 transition-all duration-300 cursor-pointer"
+                    aria-label="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Certificate Image View */}
+              <div className="overflow-auto p-3 sm:p-6 flex items-center justify-center bg-black/50">
+                <img
+                  src={activeCertificate.src}
+                  alt={activeCertificate.title}
+                  className="max-h-[75dvh] w-auto max-w-full object-contain rounded-lg shadow-2xl border border-white/10"
+                />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 });

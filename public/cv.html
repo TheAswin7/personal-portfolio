@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aswin R - Resume</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @page {
+      size: letter;
+      margin: 0.5in 0.55in;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      color: #111;
+      background: #fff;
+      font-size: 10pt;
+      line-height: 1.35;
+      padding: 24px;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+    a {
+      color: #111;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-size: 24pt;
+      font-weight: 400;
+      letter-spacing: 1.5px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .contact-info {
+      font-size: 9.5pt;
+      color: #333;
+    }
+    .contact-info span {
+      margin: 0 4px;
+    }
+    .section {
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 10.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 2px;
+      margin-bottom: 6px;
+    }
+    .summary-text {
+      font-size: 9.5pt;
+      text-align: justify;
+      line-height: 1.35;
+    }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-weight: bold;
+      font-size: 9.5pt;
+    }
+    .item-subheader {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-style: italic;
+      font-size: 9.5pt;
+      margin-bottom: 3px;
+    }
+    .item-tools {
+      font-style: italic;
+      font-size: 9pt;
+      color: #333;
+      margin-bottom: 3px;
+    }
+    ul {
+      list-style-type: disc;
+      margin-left: 18px;
+      margin-bottom: 6px;
+    }
+    li {
+      font-size: 9pt;
+      line-height: 1.3;
+      margin-bottom: 2px;
+      text-align: justify;
+    }
+    .skills-category {
+      font-size: 9pt;
+      margin-bottom: 3px;
+      line-height: 1.35;
+    }
+    .skills-category strong {
+      font-size: 9.5pt;
+    }
+    @media print {
+      body {
+        padding: 0;
+        max-width: 100%;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+    .floating-bar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      gap: 12px;
+      background: #0f172a;
+      padding: 10px 18px;
+      border-radius: 9999px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+    .floating-bar button, .floating-bar a {
+      background: #f97316;
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: bold;
+      font-family: sans-serif;
+      border-radius: 9999px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .floating-bar button:hover, .floating-bar a:hover {
+      background: #ea580c;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print floating-bar">
+    <a href="/cv.pdf" download="aswin_resume.pdf">📥 Download PDF</a>
+  </div>
+
+  <div class="header">
+    <h1>Aswin R</h1>
+    <div class="contact-info">
+      +91 73971 09360 <span>|</span>
+      <a href="mailto:aswinr2k6@gmail.com">aswinr2k6@gmail.com</a> <span>|</span>
+      Tamil Nadu, India <span>|</span>
+      <a href="https://linkedin.com/in/raswin7" target="_blank" rel="noreferrer">linkedin.com/in/raswin7</a> <span>|</span>
+      <a href="https://github.com/TheAswin7" target="_blank" rel="noreferrer">github.com/TheAswin7</a>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Summary</div>
+    <p class="summary-text">
+      Final-year Computer Science Engineering student (CGPA 8.11/10) with experience as a Software Developer and Software Engineering Intern, seeking an entry-level Software Developer role. Built full-stack web applications with React, Django REST Framework, and MySQL, including a multi-tenant SaaS platform with JWT-secured APIs, automated tests, and CI. Skilled in debugging and Agile delivery; led a team to a Top 4 national hackathon finish.
+    </p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Education</div>
+    <div style="margin-bottom: 6px;">
+      <div class="item-header">
+        <span>University College of Engineering, Nagercoil</span>
+        <span>2023 – 2027</span>
+      </div>
+      <div class="item-subheader">
+        <span>B.E. in Computer Science and Engineering; CGPA: 8.11 / 10</span>
+        <span>Nagercoil, Tamil Nadu</span>
+      </div>
+      <div style="font-size: 8.5pt; color: #222;">
+        <strong>Relevant Coursework:</strong> Data Structures &amp; Algorithms, Operating Systems, Computer Networks, DBMS, OOP
+      </div>
+    </div>
+    <div>
+      <div class="item-header">
+        <span>Arunachala School</span>
+        <span>2021 – 2023</span>
+      </div>
+      <div class="item-subheader">
+        <span>Higher Secondary Certificate — 89%</span>
+        <span>Tamil Nadu, India</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Experience</div>
+    
+    <div style="margin-bottom: 6px;">
+      <div class="item-header">
+        <span>Software Developer</span>
+        <span>Aug 2026 – Oct 2026</span>
+      </div>
+      <div class="item-subheader">
+        <span>Haio Creations (Startup)</span>
+        <span></span>
+      </div>
+      <ul>
+        <li>Contributed to building a responsive company website, developing and refining frontend pages and UI components with React and Tailwind CSS</li>
+        <li>Collaborated with the team to turn design requirements into working features, integrating the frontend with backend APIs and fixing bugs found during testing</li>
+        <li>Used Git and GitHub for version control and code reviews, shipping updates in an Agile workflow</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="item-header">
+        <span>Software Engineering Intern (AI &amp; Data Science)</span>
+        <span>Jun 2026 – Jul 2026</span>
+      </div>
+      <div class="item-subheader">
+        <span>CapeStart – The Foundry (in partnership with Oliver G Foundation)</span>
+        <span>Nagercoil, Tamil Nadu</span>
+      </div>
+      <ul>
+        <li>Engineered 5+ RESTful API endpoints with Django REST Framework and MySQL for a multi-tenant Student Attendance Management System serving ~50 students, across the full SDLC</li>
+        <li>Implemented JWT authentication and role-based authorization on every endpoint; optimized Django ORM queries for real-time attendance data access</li>
+        <li>Tested and debugged APIs with Postman across four weekly Agile sprints in a 4-member team using Git and GitHub; supported cloud deployment and earned an 85% final assessment score</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Projects</div>
+
+    <div style="margin-bottom: 6px;">
+      <div class="item-header">
+        <span>Fabsence – Multi-Tenant AI-Driven Face Recognition Attendance SaaS</span>
+        <span></span>
+      </div>
+      <div class="item-tools">
+        Python, Django REST Framework, React, MySQL, JWT, face-api.js
+      </div>
+      <ul>
+        <li>Architected a full-stack, multi-tenant SaaS attendance platform (React 18, Django REST Framework, MySQL) with server-side tenant isolation across 18+ relational tables, 8 Django apps, and Admin, Faculty, and Student dashboards</li>
+        <li>Built a consent-based face-recognition attendance workflow using face-api.js (on-device detection, 128-dimensional descriptors) with a server-side matching API and mandatory faculty review</li>
+        <li>Secured the API with JWT refresh-token blacklisting and role-based permissions, fixing findings from an architecture review; wrote 1,200+ lines of automated tests (APITestCase) and a GitHub Actions CI pipeline</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="item-header">
+        <span>Opportunity Pulse – Unified Opportunities Platform</span>
+        <span></span>
+      </div>
+      <div class="item-tools">
+        React, FastAPI, MySQL
+      </div>
+      <ul>
+        <li>Developed a platform unifying internships, jobs, symposiums, and hackathons on a FastAPI backend with MySQL and a React frontend; led Team FabFour to a Top 4 finish and the Best Presenter Award at CapeXtreme 2026</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Technical Skills</div>
+    <div class="skills-category"><strong>Languages:</strong> Python, JavaScript, SQL</div>
+    <div class="skills-category"><strong>Frontend:</strong> React, HTML5, CSS3, Bootstrap, Tailwind CSS</div>
+    <div class="skills-category"><strong>Backend &amp; APIs:</strong> Django, Django REST Framework, FastAPI, RESTful API Design, JWT Authentication, RBAC</div>
+    <div class="skills-category"><strong>Databases:</strong> MySQL, MongoDB</div>
+    <div class="skills-category"><strong>Tools &amp; Platforms:</strong> Git, GitHub, GitHub Actions (CI/CD), Linux/Unix, Postman, VS Code</div>
+    <div class="skills-category"><strong>AI Dev Tools:</strong> Claude Code, Antigravity, Cursor</div>
+    <div class="skills-category"><strong>CS Fundamentals:</strong> Data Structures &amp; Algorithms, Operating Systems, Computer Networks, DBMS, OOP</div>
+    <div class="skills-category"><strong>Practices:</strong> Agile/Scrum, SDLC, Debugging &amp; Troubleshooting, Automated Testing, Version Control, Code Review</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Achievements &amp; Certifications</div>
+    <ul>
+      <li>Presented a research paper on Machine Learning and Deep Learning techniques for Cancer Diagnosis at ICRTAC 2024</li>
+      <li>Received Cyber Safety Innovation Recognition from StartupTN and Kanniyakumari District Police</li>
+      <li>Certifications: Python for Data Science (NPTEL); e-Yantra Robotics Workshop (IIT Bombay); Prompt Engineering (ALO Info-Tech)</li>
+    </ul>
+  </div>
+
+</body>
+</html>

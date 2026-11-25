@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { useScroll, useTransform, motion, type MotionValue } from "motion/react";
+import { useScroll, useTransform, useSpring, motion, type MotionValue } from "motion/react";
 import { cn } from "../../lib/utils";
 
 export const ContainerScroll = ({
@@ -19,9 +19,15 @@ export const ContainerScroll = ({
   glowColor?: string;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
+  // The card must be fully flat (and therefore reliably clickable) well before the
+  // container reaches the middle of the viewport, so the animation completes as the
+  // container's top reaches 25% of the viewport instead of waiting for center/center.
+  const { scrollYProgress: rawProgress } = useScroll({
     target: containerRef,
+    offset: ["start end", "start 25%"],
   });
+  // Spring smoothing removes the stepped feel of wheel/Lenis scrolling.
+  const scrollYProgress = useSpring(rawProgress, { stiffness: 120, damping: 28, mass: 0.4 });
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
@@ -39,11 +45,14 @@ export const ContainerScroll = ({
     return isMobile ? [0.7, 0.9] : [1.05, 1];
   };
 
-  const rotate = useTransform(scrollYProgress, [0, 1], [20, 0]);
+  // A steep starting angle plus a close perspective (set below) is what sells the
+  // "whole page bending" feeling - 20deg on a 1000px perspective barely registers as
+  // 3D at all, so this needs to be dramatic, not subtle.
+  const rotate = useTransform(scrollYProgress, [0, 1], [72, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], scaleDimensions());
   const translate = useTransform(scrollYProgress, [0, 1], [0, -100]);
   // Glow breathes in as the card settles flat
-  const glowOpacity = useTransform(scrollYProgress, [0, 1], [0.2, 0.75]);
+  const glowOpacity = useTransform(scrollYProgress, [0, 1], [0.15, 0.75]);
 
   return (
     <div
@@ -56,7 +65,9 @@ export const ContainerScroll = ({
       <div
         className="py-10 md:py-40 w-full relative"
         style={{
-          perspective: "1000px",
+          // Closer perspective = stronger foreshortening for the same rotation, so the
+          // bend actually reads as real 3D depth instead of a faint lean.
+          perspective: "700px",
         }}
       >
         <Header translate={translate} titleComponent={titleComponent} />
@@ -98,12 +109,12 @@ export const Card = ({
   glowColor?: string;
 }) => {
   return (
-    <div className="relative mx-auto w-full max-w-7xl">
+    <div className="relative mx-auto w-[94vw] max-w-[1500px]" style={{ transformStyle: "preserve-3d" }}>
       {/* Glowing light surrounding the card */}
       <motion.div
         aria-hidden="true"
         style={{ opacity: glowOpacity }}
-        className="pointer-events-none absolute -inset-6 md:-inset-12 rounded-[2.5rem] blur-3xl will-change-transform"
+        className="pointer-events-none absolute -inset-6 md:-inset-16 rounded-[2.5rem] blur-3xl will-change-transform"
       >
         <div
           className="h-full w-full rounded-[2.5rem]"
@@ -117,9 +128,10 @@ export const Card = ({
         style={{
           rotateX: rotate,
           scale,
+          transformOrigin: "center bottom",
         }}
         className={cn(
-          "relative -mt-12 mx-auto h-[34rem] md:h-[46rem] w-full overflow-hidden rounded-[2rem]",
+          "relative -mt-12 mx-auto h-[34rem] md:h-[50rem] w-full overflow-hidden rounded-[2rem]",
           // Glassmorphism: translucent frosted panel with a soft light rim
           "border border-white/15 bg-white/[0.06] backdrop-blur-2xl p-2 md:p-4",
           "shadow-[0_25px_80px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.15)]",

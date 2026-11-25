@@ -1,34 +1,27 @@
-import { useRef, useState, useEffect, FC, ReactNode } from "react";
+import { useRef, useState, useEffect, useMemo, useCallback, lazy, Suspense, FormEvent } from "react";
 import { motion, useScroll, useTransform, useSpring, MotionValue, useMotionValueEvent } from "motion/react";
-import { Github, Linkedin, Mail, Terminal, MousePointer2, ExternalLink, ChevronDown, Zap, Code } from "lucide-react";
-import { cn } from "./lib/utils";
+import { Github, Linkedin, Mail, ExternalLink } from "lucide-react";
 import { BackgroundPaths } from "./components/ui/background-paths";
 import { TextEffect } from "./components/ui/text-effect";
 import { RabbitHoleReveal } from "./components/ui/rabbit-hole-reveal";
-import SplitText from "./components/ui/split-text";
 
 import SolarSystemTech from "./components/SolarSystemTech";
 import ExperienceSection from "./components/ExperienceSection";
 import ProjectsSection from "./components/ProjectsSection";
-import AswinAIChatbot from "./components/AswinAIChatbot";
+import { useMediaQuery } from "./hooks/useMediaQuery";
 import BubbleMenu from "./components/BubbleMenu";
 import SmoothScroll from "./components/SmoothScroll";
 import ScrollReveal from "./components/ScrollReveal";
+
+// Not needed for first paint: load these in separate chunks
+const AswinAIChatbot = lazy(() => import("./components/AswinAIChatbot"));
+const CVModal = lazy(() => import("./components/CVModal"));
 
 const services = [
   { id: '01', title: 'OpenCV' },
   { id: '02', title: 'MediaPipe' },
   { id: '03', title: 'Python' },
   { id: '04', title: 'Flutter' }
-];
-
-const navLinks = [
-  { id: 'home', label: 'Home' },
-  { id: 'about', label: 'About' },
-  { id: 'tech', label: 'Tech' },
-  { id: 'experience', label: 'History' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'contact', label: 'Contact' }
 ];
 
 const bubbleMenuItems = [
@@ -76,33 +69,113 @@ const bubbleMenuItems = [
   }
 ];
 
-function FrameDisplay({ index, activeIndex }: { index: number, activeIndex: any, key?: number }) {
-  const isVisible = useTransform(activeIndex, (v: number) => Math.round(v) === index ? 1 : 0);
-  
-  return (
-    <motion.div 
-      style={{ opacity: isVisible }}
-      className="absolute inset-0 w-full h-full"
-    >
-      <img 
-        src={`/frames/ezgif-frame-${(index + 1).toString().padStart(3, '0')}.jpg`} 
-        alt={`Frame ${index}`}
-        className="w-full h-full object-cover transition-all duration-300"
-        onError={(e) => {
-          // Fallback if local images don't exist yet
-          e.currentTarget.src = `https://picsum.photos/id/${10 + index}/800/1200`;
-        }}
-        referrerPolicy="no-referrer"
-      />
-    </motion.div>
-  );
+// Single <canvas> scrubber: frames are preloaded once and drawn on demand, instead of
+// mounting 144 stacked <img> elements that each re-evaluate on every scroll tick.
+function FrameScrubber({ activeIndex, count }: { activeIndex: MotionValue<number>, count: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const lastDrawn = useRef(-1);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || canvas.width === 0) return;
+
+    const target = Math.min(count - 1, Math.max(0, Math.round(activeIndex.get())));
+    // Use the requested frame, or the nearest already-loaded one while the rest stream in.
+    let img: HTMLImageElement | undefined;
+    for (let d = 0; d < count && !img; d++) {
+      for (const i of [target - d, target + d]) {
+        const candidate = imagesRef.current[i];
+        if (candidate && candidate.complete && candidate.naturalWidth > 0) {
+          img = candidate;
+          break;
+        }
+      }
+    }
+    if (!img) return;
+
+    // object-cover behaviour
+    const scale = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+    const w = img.naturalWidth * scale;
+    const h = img.naturalHeight * scale;
+    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  }, [activeIndex, count]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.round(canvas.clientWidth * dpr);
+      canvas.height = Math.round(canvas.clientHeight * dpr);
+      draw();
+    };
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [draw]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const images: HTMLImageElement[] = new Array(count);
+    imagesRef.current = images;
+    // Scrolling plays the sequence from the last frame to the first, so load in that order.
+    for (let i = count - 1; i >= 0; i--) {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => {
+        if (!cancelled) draw();
+      };
+      img.src = `/frames/ezgif-frame-${(i + 1).toString().padStart(3, "0")}.jpg`;
+      images[i] = img;
+    }
+    return () => {
+      cancelled = true;
+      images.forEach((im) => {
+        im.onload = null;
+      });
+    };
+  }, [count, draw]);
+
+  useMotionValueEvent(activeIndex, "change", (v) => {
+    const i = Math.round(v);
+    if (i !== lastDrawn.current) {
+      lastDrawn.current = i;
+      draw();
+    }
+  });
+
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
 }
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
-  const [textTrigger, setTextTrigger] = useState(false);
+  const [isCVOpen, setIsCVOpen] = useState(false);
+
+  // Static decorative stream: generated once so it never flickers on re-render.
+  const codeStreamRows = useMemo(
+    () =>
+      Array.from({ length: 100 }, (_, i) => ({
+        hex: Math.floor(Math.random() * 0xffff).toString(16).padStart(4, "0"),
+        status: Math.random() > 0.5 ? "ACTIVE" : "IDLE",
+        i,
+      })),
+    []
+  );
+
+  const handleContactSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const name = String(data.get("name") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim();
+    const message = String(data.get("message") ?? "").trim();
+    const subject = encodeURIComponent(`Portfolio message from ${name}`);
+    const body = encodeURIComponent(`${message}\n\n— ${name} (${email})`);
+    window.location.href = `mailto:aswinr2k6@gmail.com?subject=${subject}&body=${body}`;
+    e.currentTarget.reset();
+  };
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -110,13 +183,10 @@ export default function App() {
   });
 
   // Parallax Values
-  const videoY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
-  const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
   const mainTitleY = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  const secondaryTitleY = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const statsY = useTransform(scrollYProgress, [0, 1], [0, 50]);
-  const opacityFade = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: heroScrollProgress } = useScroll({
     target: heroRef,
@@ -150,78 +220,14 @@ export default function App() {
     restDelta: 0.001 
   });
 
-  // About Section Animations - Refined for clarity and better visibility
-  const aboutImageScale = useTransform(aboutScrollProgress, [0, 0.4], [1.05, 1]);
-  const aboutImageClip = useTransform(aboutScrollProgress, [0, 0.4], ["inset(5% 5% 5% 5% rounded 20px)", "inset(0% 0% 0% 0% rounded 0px)"]);
-  const aboutTextY = useTransform(aboutScrollProgress, [0.1, 0.5], [40, 0]);
-  const aboutTextOpacity = useTransform(aboutScrollProgress, [0, 0.4], [0, 1]);
-  const aboutHeadingX = useTransform(aboutScrollProgress, [0.1, 0.5], [-30, 0]);
-
   const techRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: techScrollProgress } = useScroll({
-    target: techRef,
-    offset: ["start end", "end start"]
-  });
-
-  const techStack = [
-    // Web Development
-    { name: "Node.js", category: "Web Development", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" },
-    { name: "Three.js", category: "Web Development", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/threejs/threejs-original.svg" },
-    { name: "React", category: "Web Development", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" },
-    { name: "WebGL", category: "Web Development", icon: "https://brandeps.com/logo-download/W/WebGL-logo-vector-01.svg" },
-    
-    // Computer Vision
-    { name: "OpenCV", category: "Computer Vision", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" },
-    { name: "YOLO", category: "Computer Vision", icon: "https://upload.wikimedia.org/wikipedia/commons/1/1a/YOLO_Logo.png" },
-    { name: "MediaPipe", category: "Computer Vision", icon: "https://upload.wikimedia.org/wikipedia/commons/e/e5/Google_MediaPipe_logo.png" },
-    { name: "Point Cloud", category: "Computer Vision", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" },
-    
-    // Machine Learning
-    { name: "PyTorch", category: "Machine Learning", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg" },
-    { name: "TensorFlow", category: "Machine Learning", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg" },
-    { name: "Scikit-Learn", category: "Machine Learning", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" },
-    { name: "Keras", category: "Machine Learning", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/keras/keras-original.svg" },
-
-    // Core Principles
-    { name: "Algorithms", category: "Core", icon: "" },
-    { name: "Data Structures", category: "Core", icon: "" },
-    { name: "System Design", category: "Core", icon: "" },
-  ];
 
   const contactRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: contactScrollProgress } = useScroll({
     target: contactRef,
     offset: ["start end", "end start"]
   });
-
-  useMotionValueEvent(aboutScrollProgress, "change", (progress) => {
-    if (progress > 0.45 && !textTrigger) {
-      setTextTrigger(true);
-    }
-  });
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-      
-      const panels = Array.from(document.querySelectorAll<HTMLElement>(".panel"));
-      const scrollPos = window.scrollY + window.innerHeight * 0.4; // Detection threshold at 40% of viewport
-      
-      let currentSection = activeSection;
-      panels.forEach((panel) => {
-         if (scrollPos >= panel.offsetTop) {
-           currentSection = panel.id;
-         }
-      });
-      
-      if (currentSection !== activeSection) {
-        setActiveSection(currentSection);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [activeSection]);
 
   return (
     <div ref={containerRef} className="relative bg-[#030303] text-white selection:bg-orange-500/30 noise-overlay">
@@ -240,12 +246,12 @@ export default function App() {
       />
 
       {/* Hero Section - Scrubber Enabled */}
-      <section ref={heroRef} id="home" className="panel relative h-[250vh] bg-black z-10 border-b border-white/5">
+      <section ref={heroRef} id="home" className="panel relative h-[200vh] md:h-[250vh] bg-black z-10 border-b border-white/5">
         <motion.div 
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="sticky top-0 h-screen overflow-hidden"
+          className="sticky top-0 h-dvh overflow-hidden"
         >
           {/* Parallax Layer 1: Ambient Background Text */}
           <motion.div 
@@ -263,13 +269,7 @@ export default function App() {
             className="absolute inset-0 z-[1]"
           >
             <div className="w-full h-full relative">
-              {[...Array(framesCount)].map((_, i) => (
-                <FrameDisplay 
-                  key={i} 
-                  index={i} 
-                  activeIndex={frameIndex} 
-                />
-              ))}
+              <FrameScrubber activeIndex={frameIndex} count={framesCount} />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 opacity-90 z-10" />
               <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-black via-black/20 to-transparent opacity-80 z-10" />
               <div className="absolute inset-y-0 left-0 w-full max-w-4xl bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
@@ -285,11 +285,11 @@ export default function App() {
             className="absolute top-0 right-10 bottom-0 w-64 z-[15] pointer-events-none opacity-20 hidden lg:block overflow-hidden"
           >
             <div className="flex flex-col gap-4 font-mono text-[8px] text-orange-500/50 uppercase leading-none whitespace-nowrap">
-              {[...Array(100)].map((_, i) => (
-                <div key={i} className="flex gap-4">
-                  <span>0x{Math.random().toString(16).slice(2, 6)}</span>
-                  <span>INIT_PROTOCOL_V{i}</span>
-                  <span>STATUS: {Math.random() > 0.5 ? 'ACTIVE' : 'IDLE'}</span>
+              {codeStreamRows.map((row) => (
+                <div key={row.i} className="flex gap-4">
+                  <span>0x{row.hex}</span>
+                  <span>INIT_PROTOCOL_V{row.i}</span>
+                  <span>STATUS: {row.status}</span>
                 </div>
               ))}
             </div>
@@ -303,7 +303,7 @@ export default function App() {
                 scale: [1, 1.1, 1]
               }}
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-orange-500/10 blur-[150px] rounded-full" 
+              className="absolute top-[-10%] right-[-10%] w-[80%] h-[80%] bg-orange-500/10 blur-[80px] md:blur-[150px] rounded-full"
             />
           </div>
 
@@ -335,10 +335,28 @@ export default function App() {
                           initial={{ y: "100%", opacity: 0, filter: "blur(20px)" }}
                           animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                           transition={{ duration: 1.3, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-                          className="text-[5rem] md:text-[7rem] lg:text-[10rem] font-display uppercase tracking-tighter leading-[0.8] text-glow"
+                          className="group text-[5rem] md:text-[7rem] lg:text-[10rem] font-display uppercase tracking-tighter leading-[0.8] text-glow"
                         >
-                          <span className="text-white/90 block">HI I'M</span>
-                          <span className="text-gradient-orange text-glow-orange block">ASWIN</span>
+                          {/* HI I'M — white by default; on hover an orange fill is *revealed*
+                              across it with a left-to-right wipe (and ASWIN does the reverse) */}
+                          <span className="relative block w-fit cursor-default">
+                            <span className="block text-white/90 transition-colors duration-500">HI I'M</span>
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 block text-gradient-orange text-glow-orange [clip-path:inset(0_100%_0_0)] transition-[clip-path] duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:[clip-path:inset(0_0_0_0)]"
+                            >
+                              HI I'M
+                            </span>
+                          </span>
+                          <span className="relative block w-fit cursor-default">
+                            <span className="block text-gradient-orange text-glow-orange">ASWIN</span>
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 block text-white/90 text-glow [clip-path:inset(0_100%_0_0)] transition-[clip-path] duration-[650ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:[clip-path:inset(0_0_0_0)]"
+                            >
+                              ASWIN
+                            </span>
+                          </span>
                         </motion.h1>
                       </div>
                       
@@ -349,7 +367,7 @@ export default function App() {
                           delay={1}
                           className="text-base md:text-lg font-display tracking-[0.4em] text-white/40 uppercase font-black"
                         >
-                          Vision Engineer
+                          AI Engineer
                         </TextEffect>
                       </div>
                     </div>
@@ -361,13 +379,13 @@ export default function App() {
                       className="flex items-center gap-8"
                     >
                       <div className="flex gap-4">
-                        <a href="https://github.com" target="_blank" rel="noreferrer" className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black hover:border-orange-500 transition-all duration-300">
+                        <a href="https://github.com/TheAswin7" target="_blank" rel="noreferrer" aria-label="GitHub" className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black hover:border-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 transition-[background-color,color,border-color] duration-300">
                           <Github size={18} />
                         </a>
-                        <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black hover:border-orange-500 transition-all duration-300">
+                        <a href="https://linkedin.com/in/raswin7" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black hover:border-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 transition-[background-color,color,border-color] duration-300">
                           <Linkedin size={18} />
                         </a>
-                        <a href="mailto:aswinr2k6@gmail.com" className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black hover:border-orange-500 transition-all duration-300">
+                        <a href="mailto:aswinr2k6@gmail.com" aria-label="Email" className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black hover:border-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 transition-[background-color,color,border-color] duration-300">
                           <Mail size={18} />
                         </a>
                       </div>
@@ -422,9 +440,9 @@ export default function App() {
       <section
         ref={aboutRef}
         id="about"
-        className="panel relative min-h-[300vh] bg-black z-20"
+        className="panel relative min-h-[240vh] md:min-h-[300vh] bg-black z-20"
       >
-        <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
+        <div className="sticky top-0 h-dvh w-full flex items-center justify-center overflow-hidden">
 
           {/* Rabbit-hole curtain: splits open over the section's own scroll progress,
               revealing the real About content underneath - no separate pinned section needed */}
@@ -435,7 +453,7 @@ export default function App() {
             style={{ 
               opacity: useTransform(smoothAboutProgress, [0.05, 0.25, 0.8, 0.95], [0, 0.15, 0.15, 0]),
               scale: useTransform(smoothAboutProgress, [0.05, 0.45], [0.85, 1.2]),
-              filter: useTransform(smoothAboutProgress, [0.05, 0.45], ["blur(40px)", "blur(0px)"]),
+              filter: useTransform(smoothAboutProgress, [0.05, 0.45], ["blur(14px)", "blur(0px)"]),
               y: useTransform(smoothAboutProgress, [0, 1], [150, -150])
             }}
             className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none overflow-hidden"
@@ -450,21 +468,20 @@ export default function App() {
             style={{ opacity: useTransform(aboutScrollProgress, [0, 0.2, 0.8, 0.95], [0, 1, 1, 0]) }}
             className="absolute inset-0 pointer-events-none z-0"
           >
-            <div className="absolute top-0 inset-x-0 h-2/3 bg-gradient-to-b from-orange-500/10 to-transparent blur-[140px]" />
-            <div className="absolute bottom-0 inset-x-0 h-2/3 bg-gradient-to-t from-blue-500/5 to-transparent blur-[140px]" />
+            <div className="absolute top-0 inset-x-0 h-2/3 bg-gradient-to-b from-orange-500/10 to-transparent blur-[70px] md:blur-[140px]" />
+            <div className="absolute bottom-0 inset-x-0 h-2/3 bg-gradient-to-t from-blue-500/5 to-transparent blur-[70px] md:blur-[140px]" />
           </motion.div>
 
           {/* Animated Background Paths - Wave Effect */}
           <motion.div 
             style={{ 
               opacity: useTransform(smoothAboutProgress, [0.1, 0.3, 0.9], [0, 0.65, 0.65]),
-              filter: "blur(2px)",
               scale: useTransform(smoothAboutProgress, [0.1, 0.9], [1, 1.15]),
               y: useTransform(smoothAboutProgress, [0.2, 0.8], [50, -50])
             }}
             className="absolute inset-0 z-0 pointer-events-none"
           >
-            <BackgroundPaths />
+            {!isMobile && <BackgroundPaths />}
           </motion.div>
 
           {/* Main Visual: Portrait Reveal with Lens Sweep */}
@@ -492,7 +509,7 @@ export default function App() {
                   z: 150,
                   transition: { duration: 0.6, ease: [0.23, 1, 0.32, 1] }
                 }}
-                className="relative w-full max-w-[400px] md:max-w-[480px] aspect-[4/5] preserve-3d pointer-events-auto cursor-none group"
+                className="relative w-full max-w-[400px] md:max-w-[480px] aspect-[4/5] preserve-3d pointer-events-auto group will-change-transform"
               >
                 {/* Neon HUD Frame */}
                 <motion.div 
@@ -571,20 +588,24 @@ export default function App() {
                 }}
                 className="space-y-10 lg:space-y-14"
               >
-                <div className="space-y-8">
-                  <div className="flex items-center gap-6">
+                <div className="space-y-6">
+                  {/* Category Tag */}
+                  <div className="flex items-center gap-3">
+                    <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_10px_#f97316]" />
+                    <span className="font-mono text-xs sm:text-sm uppercase tracking-[0.25em] text-orange-400 font-bold">
+                      ARCHITECT PROFILE
+                    </span>
                     <motion.div 
                       style={{ width: useTransform(aboutScrollProgress, [0.35, 0.45], [0, 48]) }}
-                      className="h-[1px] bg-orange-500 shadow-[0_0_20px_#f97316]" 
+                      className="h-[1px] bg-orange-500/60 shadow-[0_0_15px_#f97316]" 
                     />
-                    <span className="text-[12px] uppercase tracking-[0.8em] text-orange-500 font-black opacity-60">Architect_Profile</span>
                   </div>
 
-                  <div className="space-y-8">
+                  <div className="space-y-6">
                     <ScrollReveal preset="blur-reveal" delay={0.15}>
-                      <h3 className="text-3xl md:text-5xl font-display uppercase tracking-tight text-white leading-[1.15] max-w-xl">
+                      <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-about font-bold tracking-tight text-white leading-[1.15] max-w-xl">
                         Aspiring{" "}
-                        <span className="normal-case font-serif italic font-medium text-gradient-orange">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-amber-300 drop-shadow-[0_0_25px_rgba(249,115,22,0.35)]">
                           Software Engineer
                         </span>
                         <br />
@@ -592,21 +613,11 @@ export default function App() {
                       </h3>
                     </ScrollReveal>
 
-                    <div className="max-w-lg">
-                      <SplitText
-                        tag="p"
-                        text="I am a Computer Science Engineering student (2023–2027) with a proven track record of shipping real-time computer vision systems using Python, OpenCV, and MediaPipe. Having engineered gesture-driven applications at 30+ FPS and presented research at ICRTAC 2024 on Deep Learning for cancer diagnosis, I bridge the gap between complex algorithms and raw digital performance."
-                        className="text-base md:text-lg font-about font-bold tracking-tight leading-relaxed text-white/85"
-                        splitType="words"
-                        from={{ opacity: 0, y: 16, filter: "blur(6px)" }}
-                        to={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        duration={0.7}
-                        delay={18}
-                        ease="power3.out"
-                        threshold={0.15}
-                        rootMargin="-80px"
-                        textAlign="left"
-                      />
+                    {/* Highly readable text container with frosted backdrop for perfect contrast against background lines */}
+                    <div className="max-w-xl p-5 sm:p-6 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.6)]">
+                      <p className="text-base sm:text-lg md:text-[18px] font-sans font-normal leading-[1.8] text-gray-100 antialiased">
+                        I'm <strong className="text-white font-semibold">Aswin R</strong>, a <strong className="text-white font-semibold">Computer Science Engineering</strong> student passionate about building impactful software. My interests lie in <span className="text-orange-400 font-semibold">Software Engineering</span>, <span className="text-orange-400 font-semibold">Full-Stack Development</span>, and <span className="text-orange-400 font-semibold">Artificial Intelligence</span>, and I enjoy creating modern web applications while continuously strengthening my problem-solving skills through <span className="text-white font-semibold">hands-on projects</span> and <span className="text-white font-semibold">DSA</span>.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -621,11 +632,15 @@ export default function App() {
                 >
                   <motion.a 
                     href="/cv.pdf" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsCVOpen(true);
+                    }}
                     target="_blank"
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group relative flex items-center gap-6 px-10 py-4 border-2 border-orange-500/50 rounded-xl overflow-hidden bg-black/40 backdrop-blur-md transition-all duration-500 shadow-[0_0_25px_rgba(249,115,22,0.1)] hover:border-orange-500 hover:shadow-[0_0_50px_rgba(249,115,22,0.4)]"
+                    className="group relative flex items-center gap-6 px-10 py-4 border-2 border-orange-500/50 rounded-xl overflow-hidden bg-black/40 backdrop-blur-md transition-all duration-500 shadow-[0_0_25px_rgba(249,115,22,0.1)] hover:border-orange-500 hover:shadow-[0_0_50px_rgba(249,115,22,0.4)] cursor-pointer"
                   >
                     {/* Background Shimmer Effect */}
                     <div className="absolute inset-0 z-0 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000 ease-in-out" />
@@ -634,9 +649,9 @@ export default function App() {
                     <div className="absolute inset-0 z-0 bg-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     <motion.span 
-                      initial={{ letterSpacing: "0.3em" }}
-                      whileHover={{ letterSpacing: "0.5em" }}
-                      className="relative z-10 text-[13px] md:text-[15px] uppercase font-black text-orange-500 group-hover:text-black transition-colors duration-500 flex items-center gap-4"
+                      initial={{ letterSpacing: "0.2em" }}
+                      whileHover={{ letterSpacing: "0.3em" }}
+                      className="relative z-10 text-[14px] md:text-[16px] font-mono uppercase font-bold text-orange-400 group-hover:text-black transition-colors duration-300 flex items-center gap-3"
                     >
                       View CV
                     </motion.span>
@@ -685,14 +700,14 @@ export default function App() {
       <section 
         ref={contactRef}
         id="contact" 
-        className="panel relative min-h-[150vh] z-60 bg-[#030303] flex items-center justify-center"
+        className="panel relative min-h-[130vh] md:min-h-[150vh] z-60 bg-[#030303] flex items-center justify-center"
       >
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: false, margin: "-10%" }}
-          className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden"
+          className="sticky top-0 h-dvh w-full flex flex-col items-center justify-center overflow-hidden"
         >
           {/* Background Highlight */}
           <motion.div 
@@ -700,7 +715,7 @@ export default function App() {
               opacity: useTransform(contactScrollProgress, [0, 0.5, 1], [0, 0.2, 0]),
               scale: useTransform(contactScrollProgress, [0, 1], [0.8, 1.2])
             }}
-            className="absolute w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[150px] pointer-events-none" 
+            className="absolute w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[80px] md:blur-[150px] pointer-events-none"
           />
 
           <div className="relative z-10 w-full max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
@@ -729,21 +744,21 @@ export default function App() {
               <div className="space-y-6">
                 {[
                   { icon: Mail, label: 'Secure_Mail', value: 'aswinr2k6@gmail.com', href: 'mailto:aswinr2k6@gmail.com' },
-                  { icon: Github, label: 'Source_Control', value: 'GitHub / Aswin R', href: 'https://github.com' },
-                  { icon: Linkedin, label: 'Professional_Net', value: 'LinkedIn / Aswin R', href: 'https://linkedin.com' }
+                  { icon: Github, label: 'Source_Control', value: 'GitHub / TheAswin7', href: 'https://github.com/TheAswin7' },
+                  { icon: Linkedin, label: 'Professional_Net', value: 'LinkedIn / raswin7', href: 'https://linkedin.com/in/raswin7' }
                 ].map((item, i) => (
                   <motion.a
                     key={item.label}
                     href={item.href}
-                    target="_blank"
+                    {...(item.href.startsWith("mailto:") ? {} : { target: "_blank" })}
                     rel="noreferrer"
-                    className="flex items-center gap-6 group"
+                    className="flex items-center gap-6 group rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
                   >
-                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-orange-500 group-hover:bg-orange-500 group-hover:text-black transition-all duration-500">
+                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-orange-500 group-hover:bg-orange-500 group-hover:text-black transition-[border-color,background-color,color] duration-300">
                       <item.icon size={18} />
                     </div>
                     <div>
-                      <p className="text-[9px] font-mono uppercase tracking-widest text-white/30 group-hover:text-orange-500 transition-colors">{item.label}</p>
+                      <p className="text-[11px] font-mono uppercase tracking-widest text-white/60 group-hover:text-orange-500 transition-colors">{item.label}</p>
                       <p className="text-sm font-bold uppercase tracking-widest">{item.value}</p>
                     </div>
                   </motion.a>
@@ -756,27 +771,27 @@ export default function App() {
                 opacity: useTransform(contactScrollProgress, [0.2, 0.5], [0, 1]),
                 x: useTransform(contactScrollProgress, [0.2, 0.5], [50, 0])
               }}
-              className="glass-surface p-12 rounded-3xl border border-white/10 relative overflow-hidden"
+              className="glass-surface p-6 sm:p-12 rounded-3xl border border-white/10 relative overflow-hidden"
             >
-              <div className="space-y-8">
-                <div className="grid grid-cols-2 gap-8">
+              <form onSubmit={handleContactSubmit} className="space-y-6 sm:space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                    <div className="space-y-2">
-                     <label className="text-[10px] uppercase tracking-widest text-white/30 block">Name</label>
-                     <input type="text" placeholder="John Doe" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" />
+                     <label htmlFor="contact-name" className="text-[11px] uppercase tracking-widest text-white/60 block">Name</label>
+                     <input id="contact-name" name="name" type="text" required autoComplete="name" placeholder="John Doe" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500/40 outline-none transition-[border-color,box-shadow] duration-300" />
                    </div>
                    <div className="space-y-2">
-                     <label className="text-[10px] uppercase tracking-widest text-white/30 block">Email</label>
-                     <input type="email" placeholder="john@example.com" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" />
+                     <label htmlFor="contact-email" className="text-[11px] uppercase tracking-widest text-white/60 block">Email</label>
+                     <input id="contact-email" name="email" type="email" required autoComplete="email" placeholder="john@example.com" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500/40 outline-none transition-[border-color,box-shadow] duration-300" />
                    </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-white/30 block">Message</label>
-                  <textarea placeholder="How can I help you?" rows={4} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-orange-500 outline-none transition-colors" />
+                  <label htmlFor="contact-message" className="text-[11px] uppercase tracking-widest text-white/60 block">Message</label>
+                  <textarea id="contact-message" name="message" required placeholder="How can I help you?" rows={4} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500/40 outline-none transition-[border-color,box-shadow] duration-300" />
                 </div>
-                <button className="w-full py-4 bg-orange-500 text-black font-black uppercase tracking-[0.3em] text-[10px] rounded-lg hover:bg-white transition-all duration-500 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-white/20">
+                <button type="submit" className="w-full py-4 bg-orange-500 text-black font-black uppercase tracking-[0.3em] text-[11px] rounded-lg hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-[background-color,box-shadow] duration-300 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-white/20">
                   Send Message
                 </button>
-              </div>
+              </form>
 
               {/* Scanline Effect */}
               <div className="absolute inset-0 bg-scanline pointer-events-none opacity-5" />
@@ -784,13 +799,16 @@ export default function App() {
           </div>
 
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-center space-y-2 opacity-20">
-            <p className="text-[9px] font-mono uppercase tracking-[0.5em]">System_Version_2026.05.07</p>
-            <p className="text-[9px] font-mono uppercase tracking-[0.5em]">Developed_By_Aswin_R</p>
+            <p className="text-[11px] font-mono uppercase tracking-[0.5em]">System_Version_2026.05.07</p>
+            <p className="text-[11px] font-mono uppercase tracking-[0.5em]">Developed_By_Aswin_R</p>
           </div>
         </motion.div>
       </section>
 
-      <AswinAIChatbot />
+      <Suspense fallback={null}>
+        <AswinAIChatbot />
+        <CVModal isOpen={isCVOpen} onClose={() => setIsCVOpen(false)} />
+      </Suspense>
     </div>
   );
 }
