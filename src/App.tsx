@@ -772,7 +772,7 @@ export default function App() {
               <ScrollReveal preset="blur-reveal" once={false}>
                 <h2 className="text-6xl md:text-8xl font-display uppercase tracking-tighter leading-none mb-8">
                   Initiate <br />
-                  <span className="normal-case font-serif italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-orange-500/40">Protocol</span>
+                  <span className="normal-case font-serif italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-orange-400 pr-2 inline-block">Protocol</span>
                 </h2>
               </ScrollReveal>
               <div className="text-lg max-w-md font-light leading-relaxed mb-12">
