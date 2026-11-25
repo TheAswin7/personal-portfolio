@@ -312,13 +312,11 @@ export default function ProjectsSection() {
             scale: useTransform(scrollYProgress, [0.04, 0.09], [0.93, 1]),
             perspective: isMobile ? '1000px' : '1500px',
           }}
-          className="relative z-10 w-full max-w-6xl mx-auto px-4 flex-1 flex items-center justify-center"
+          className="relative z-10 w-full max-w-6xl mx-auto px-4 flex-1 flex items-center justify-center cursor-grab active:cursor-grabbing"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          onMouseDown={handleTouchStart}
-          onMouseUp={handleTouchEnd}
         >
           <div
             className="relative w-full h-[360px] sm:h-[400px] md:h-[430px] flex items-center justify-center"
@@ -331,8 +329,11 @@ export default function ProjectsSection() {
               return (
                 <div
                   key={project.id}
-                  onClick={() => {
-                    if (!isActive) setActiveIndex(index);
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isActive) {
+                      setActiveIndex(index);
+                    }
                   }}
                   style={{
                     position: 'absolute',
@@ -475,10 +476,6 @@ export default function ProjectsSection() {
             >
               <ChevronRight size={20} />
             </button>
-          </div>
-
-          <div className="text-[10px] font-mono tracking-widest text-gray-300 uppercase">
-            Click cards or use arrows to navigate · Auto-rotating
           </div>
         </motion.div>
 
