@@ -7,14 +7,17 @@ export default function SmoothScroll() {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
+    // Enable smooth touch momentum on mobile screens
+    const isMobile = window.innerWidth <= 768;
+
     const lenis = new Lenis({
-      duration: 1.4,
+      duration: isMobile ? 0.9 : 1.4,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // premium elegant inertia
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
       wheelMultiplier: 1.05,
-      touchMultiplier: 1.5,
+      touchMultiplier: isMobile ? 1.8 : 1.5,
       // Let inner scrollable UI (chatbot, modals) scroll natively instead of the page
       prevent: (node) => !!(node as HTMLElement).closest?.("[data-lenis-prevent]"),
     });
