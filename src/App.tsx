@@ -165,16 +165,56 @@ export default function App() {
     []
   );
 
-  const handleContactSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const handleContactSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
     const name = String(data.get("name") ?? "").trim();
     const email = String(data.get("email") ?? "").trim();
     const message = String(data.get("message") ?? "").trim();
-    const subject = encodeURIComponent(`Portfolio message from ${name}`);
-    const body = encodeURIComponent(`${message}\n\n— ${name} (${email})`);
-    window.location.href = `mailto:aswinr2k6@gmail.com?subject=${subject}&body=${body}`;
-    e.currentTarget.reset();
+
+    const accessKey = ((import.meta as any).env?.VITE_WEB3FORMS_ACCESS_KEY as string) || "YOUR_ACCESS_KEY_HERE";
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name,
+          email,
+          message,
+          from_name: "Aswin Portfolio Contact Form",
+          subject: `New Portfolio Message from ${name}`,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setSubmitStatus("success");
+        form.reset();
+        setTimeout(() => setSubmitStatus("idle"), 5000);
+      } else {
+        // Fallback to mailto if key is missing or failed
+        window.location.href = `mailto:aswinr2k6@gmail.com?subject=${encodeURIComponent(`Portfolio message from ${name}`)}&body=${encodeURIComponent(`${message}\n\n— ${name} (${email})`)}`;
+        setSubmitStatus("error");
+      }
+    } catch {
+      // Fallback to mailto on network error
+      window.location.href = `mailto:aswinr2k6@gmail.com?subject=${encodeURIComponent(`Portfolio message from ${name}`)}&body=${encodeURIComponent(`${message}\n\n— ${name} (${email})`)}`;
+      setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const { scrollYProgress } = useScroll({
@@ -788,9 +828,22 @@ export default function App() {
                   <label htmlFor="contact-message" className="text-[11px] uppercase tracking-widest text-white/60 block">Message</label>
                   <textarea id="contact-message" name="message" required placeholder="How can I help you?" rows={4} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500/40 outline-none transition-[border-color,box-shadow] duration-300" />
                 </div>
-                <button type="submit" className="w-full py-4 bg-orange-500 text-black font-black uppercase tracking-[0.3em] text-[11px] rounded-lg hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-[background-color,box-shadow] duration-300 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-white/20">
-                  Send Message
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-orange-500 disabled:opacity-50 text-black font-black uppercase tracking-[0.3em] text-[11px] rounded-lg hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-[background-color,box-shadow,opacity] duration-300 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-white/20 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting
+                    ? "Transmitting..."
+                    : submitStatus === "success"
+                    ? "✓ Transmission Received"
+                    : "Send Message"}
                 </button>
+                {submitStatus === "success" && (
+                  <p className="text-center font-mono text-xs text-orange-400 mt-2">
+                    Message transmitted successfully. Aswin will respond shortly.
+                  </p>
+                )}
               </form>
 
               {/* Scanline Effect */}
