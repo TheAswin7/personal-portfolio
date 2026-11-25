@@ -1,5 +1,15 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { IncomingMessage, ServerResponse } from "http";
 import { GoogleGenAI } from "@google/genai";
+
+interface CustomRequest extends IncomingMessage {
+  body?: any;
+  method?: string;
+}
+
+interface CustomResponse extends ServerResponse {
+  status: (code: number) => CustomResponse;
+  json: (data: any) => void;
+}
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
@@ -10,7 +20,7 @@ const ai = new GoogleGenAI({
   },
 });
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
 const SYSTEM_PROMPT = `You are "Raven", a highly sophisticated, cinematic, and professional AI chatbot built into the portfolio of Aswin R.
 Your goal is to answer questions about Aswin, his skills, his background, his projects, and his capabilities with maximum clarity, accuracy, and in a futuristic, visionary tone that matches his "AI Engineer" brand.
@@ -44,7 +54,7 @@ Here is everything about Aswin R.:
   * Visionary, futuristic, professional, and slightly cinematic. Keep answers clear, direct, helpful, and highly readable.
   * You should introduce yourself as Raven and welcome the user to Aswin's engineering portal.`;
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: CustomRequest, res: CustomResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

@@ -185,7 +185,8 @@ export default function AswinAIChatbot() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to contact Raven terminal.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.detail || `Server responded with status ${response.status}`);
       }
 
       const data = await response.json();
@@ -198,12 +199,12 @@ export default function AswinAIChatbot() {
       };
 
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat Error:", error);
       const errorMessage: Message = {
         id: Math.random().toString(),
         sender: "bot",
-        text: "[SYSTEM_ERROR: Connection timed out. Please ensure the backend server is running and try again.]",
+        text: `[SYSTEM_ERROR: ${error?.message || "Connection timed out. Please ensure backend is running."}]`,
         timestamp: new Date()
       };
       setMessages((prev) => [...prev, errorMessage]);
