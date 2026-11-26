@@ -36,6 +36,19 @@ export const IrisReveal: React.FC<IrisRevealProps> = ({
   // Once fully open, the whole iris layer disappears so nothing lingers over the revealed content
   const layerOpacity = useTransform(progress, exitRange, [1, 0]);
 
+  // Disable black iris cover on mobile screens so content is never blacked out
+  const [isMobileScreen, setIsMobileScreen] = React.useState(false);
+  React.useEffect(() => {
+    const check = () => setIsMobileScreen(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  if (isMobileScreen) {
+    return null;
+  }
+
   return (
     <motion.div
       aria-hidden="true"

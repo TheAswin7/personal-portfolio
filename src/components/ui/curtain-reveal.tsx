@@ -121,6 +121,19 @@ export const FireSplashReveal: React.FC<FireSplashRevealProps> = ({
   const display = useTransform(progress, (v) => (v >= 0.185 ? 'none' : 'flex'));
   const pointerEvents = useTransform(progress, (v) => (v >= BLAST_END ? 'none' : 'auto'));
 
+  // Disable black blast doors on mobile screens to prevent solid black overlays
+  const [isMobileScreen, setIsMobileScreen] = React.useState(false);
+  React.useEffect(() => {
+    const check = () => setIsMobileScreen(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  if (isMobileScreen) {
+    return null;
+  }
+
   return (
     <motion.div
       style={{ opacity: layerOpacity, pointerEvents, display }}

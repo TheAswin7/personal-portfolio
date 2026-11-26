@@ -1,4 +1,4 @@
-import { ReactNode, useRef, useState, useEffect } from "react";
+import { ReactNode, useRef } from "react";
 import { motion, useScroll, useTransform, useInView, useSpring } from "motion/react";
 
 interface ScrollRevealProps {
@@ -23,25 +23,11 @@ export default function ScrollReveal({
   once = true,
   speed = "normal",
 }: ScrollRevealProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, {
     once,
     amount: threshold,
   });
-
-  // On mobile devices, cancel laggy scroll reveals and display content immediately
-  if (isMobile) {
-    return <div className={className}>{children}</div>;
-  }
 
   // Dynamic Scroll Progress for scroll-linked (Apple-style) reveals
   const { scrollYProgress } = useScroll({
