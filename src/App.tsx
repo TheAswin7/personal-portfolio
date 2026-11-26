@@ -69,8 +69,51 @@ const bubbleMenuItems = [
   }
 ];
 
-// Single <canvas> scrubber: frames are preloaded once and drawn on demand, instead of
-// mounting 144 stacked <img> elements that each re-evaluate on every scroll tick.
+// Roles to loop through in hero typing animation
+const HERO_ROLES = ["AI Engineer", "Backend Engineer", "Software Developer"];
+
+function TypewriterRole() {
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentFullText = HERO_ROLES[roleIndex];
+    let timeout: NodeJS.Timeout;
+
+    if (!isDeleting) {
+      if (displayText.length < currentFullText.length) {
+        timeout = setTimeout(() => {
+          setDisplayText(currentFullText.slice(0, displayText.length + 1));
+        }, 90);
+      } else {
+        timeout = setTimeout(() => {
+          setIsDeleting(true);
+        }, 2000);
+      }
+    } else {
+      if (displayText.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayText(currentFullText.slice(0, displayText.length - 1));
+        }, 45);
+      } else {
+        setIsDeleting(false);
+        setRoleIndex((prev) => (prev + 1) % HERO_ROLES.length);
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, roleIndex]);
+
+  return (
+    <div className="flex items-center gap-2 mb-8 min-h-[32px]">
+      <span className="text-base sm:text-lg md:text-xl font-mono tracking-[0.25em] sm:tracking-[0.35em] text-orange-400 uppercase font-bold drop-shadow-[0_0_12px_rgba(249,115,22,0.6)]">
+        {displayText}
+      </span>
+      <span className="inline-block w-2.5 h-5 md:h-6 bg-orange-400 animate-pulse shadow-[0_0_8px_#f97316] rounded-xs" />
+    </div>
+  );
+}
 function FrameScrubber({ activeIndex, count }: { activeIndex: MotionValue<number>, count: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
@@ -400,16 +443,7 @@ export default function App() {
                         </motion.h1>
                       </div>
                       
-                      <div className="flex items-center gap-4 mb-8">
-                        <TextEffect
-                          per="char"
-                          preset="blur"
-                          delay={1}
-                          className="text-base md:text-lg font-display tracking-[0.4em] text-white/40 uppercase font-black"
-                        >
-                          AI Engineer
-                        </TextEffect>
-                      </div>
+                      <TypewriterRole />
                     </div>
 
                     <motion.div 
@@ -740,48 +774,48 @@ export default function App() {
       <section 
         ref={contactRef}
         id="contact" 
-        className="panel relative min-h-[130vh] md:min-h-[150vh] z-60 bg-[#030303] flex items-center justify-center"
+        className="panel relative min-h-dvh md:min-h-[150vh] z-60 bg-[#030303] flex items-center justify-center py-16 md:py-0"
       >
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: false, margin: "-10%" }}
-          className="sticky top-0 h-dvh w-full flex flex-col items-center justify-center overflow-hidden"
+          className="relative md:sticky md:top-0 min-h-dvh md:h-dvh w-full flex flex-col items-center justify-center overflow-visible md:overflow-hidden py-12 md:py-0"
         >
           {/* Background Highlight */}
           <motion.div 
             style={{ 
-              opacity: useTransform(contactScrollProgress, [0, 0.5, 1], [0, 0.2, 0]),
-              scale: useTransform(contactScrollProgress, [0, 1], [0.8, 1.2])
+              opacity: isMobile ? 0.15 : useTransform(contactScrollProgress, [0, 0.5, 1], [0, 0.2, 0]),
+              scale: isMobile ? 1 : useTransform(contactScrollProgress, [0, 1], [0.8, 1.2])
             }}
             className="absolute w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[80px] md:blur-[150px] pointer-events-none"
           />
 
-          <div className="relative z-10 w-full max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
             <motion.div
               style={{
-                opacity: useTransform(contactScrollProgress, [0, 0.3], [0, 1]),
-                x: useTransform(contactScrollProgress, [0, 0.3], [-50, 0])
+                opacity: isMobile ? 1 : useTransform(contactScrollProgress, [0, 0.3], [0, 1]),
+                x: isMobile ? 0 : useTransform(contactScrollProgress, [0, 0.3], [-50, 0])
               }}
             >
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-4 md:mb-6">
                 <div className="h-[1px] w-12 bg-orange-500" />
                 <span className="text-[10px] font-mono tracking-[0.6em] uppercase text-orange-500">Node_Connect</span>
               </div>
               <ScrollReveal preset="blur-reveal" once={false}>
-                <h2 className="text-6xl md:text-8xl font-display uppercase tracking-tighter leading-none mb-8">
+                <h2 className="text-4xl sm:text-6xl md:text-8xl font-display uppercase tracking-tighter leading-none mb-4 md:mb-8">
                   Initiate <br />
                   <span className="normal-case font-serif italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-orange-400 pr-2 inline-block">Protocol</span>
                 </h2>
               </ScrollReveal>
-              <div className="text-lg max-w-md font-light leading-relaxed mb-12">
+              <div className="text-sm sm:text-base md:text-lg max-w-md font-light leading-relaxed mb-8 md:mb-12 text-white/80">
                 <ScrollReveal preset="word-by-word">
                   Available for strategic partnerships, high-stakes development, and cinematic digital engineering.
                 </ScrollReveal>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {[
                   { icon: Mail, label: 'Secure_Mail', value: 'aswinr2k6@gmail.com', href: 'mailto:aswinr2k6@gmail.com' },
                   { icon: Github, label: 'Source_Control', value: 'GitHub / TheAswin7', href: 'https://github.com/TheAswin7' },
@@ -792,14 +826,14 @@ export default function App() {
                     href={item.href}
                     {...(item.href.startsWith("mailto:") ? {} : { target: "_blank" })}
                     rel="noreferrer"
-                    className="flex items-center gap-6 group rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
+                    className="flex items-center gap-4 sm:gap-6 group rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
                   >
-                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-orange-500 group-hover:bg-orange-500 group-hover:text-black transition-[border-color,background-color,color] duration-300">
-                      <item.icon size={18} />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:border-orange-500 group-hover:bg-orange-500 group-hover:text-black transition-[border-color,background-color,color] duration-300 flex-shrink-0">
+                      <item.icon size={16} />
                     </div>
                     <div>
-                      <p className="text-[11px] font-mono uppercase tracking-widest text-white/60 group-hover:text-orange-500 transition-colors">{item.label}</p>
-                      <p className="text-sm font-bold uppercase tracking-widest">{item.value}</p>
+                      <p className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-white/60 group-hover:text-orange-500 transition-colors">{item.label}</p>
+                      <p className="text-xs sm:text-sm font-bold uppercase tracking-widest break-all">{item.value}</p>
                     </div>
                   </motion.a>
                 ))}
@@ -808,13 +842,13 @@ export default function App() {
 
             <motion.div
               style={{
-                opacity: useTransform(contactScrollProgress, [0.2, 0.5], [0, 1]),
-                x: useTransform(contactScrollProgress, [0.2, 0.5], [50, 0])
+                opacity: isMobile ? 1 : useTransform(contactScrollProgress, [0.2, 0.5], [0, 1]),
+                x: isMobile ? 0 : useTransform(contactScrollProgress, [0.2, 0.5], [50, 0])
               }}
-              className="glass-surface p-6 sm:p-12 rounded-3xl border border-white/10 relative overflow-hidden"
+              className="glass-surface p-5 sm:p-8 md:p-12 rounded-3xl border border-white/10 relative overflow-hidden"
             >
-              <form onSubmit={handleContactSubmit} className="space-y-6 sm:space-y-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+              <form onSubmit={handleContactSubmit} className="space-y-5 sm:space-y-6 md:space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                    <div className="space-y-2">
                      <label htmlFor="contact-name" className="text-[11px] uppercase tracking-widest text-white/60 block">Name</label>
                      <input id="contact-name" name="name" type="text" required autoComplete="name" placeholder="John Doe" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-orange-500 focus-visible:ring-2 focus-visible:ring-orange-500/40 outline-none transition-[border-color,box-shadow] duration-300" />
@@ -851,7 +885,7 @@ export default function App() {
             </motion.div>
           </div>
 
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-center space-y-2 opacity-20">
+          <div className="relative md:absolute mt-12 md:mt-0 md:bottom-12 left-0 right-0 md:left-1/2 md:-translate-x-1/2 text-center space-y-2 opacity-20">
             <p className="text-[11px] font-mono uppercase tracking-[0.5em]">System_Version_2026.05.07</p>
             <p className="text-[11px] font-mono uppercase tracking-[0.5em]">Developed_By_Aswin_R</p>
           </div>
